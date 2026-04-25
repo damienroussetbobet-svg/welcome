@@ -146,41 +146,76 @@ if ($id) {
 </div>
 <?php endif; ?>
 
-<?php if ($action === 'list'): ?>
+<?php if ($action === 'list'):
+$agents = $db->query("SELECT * FROM agents ORDER BY nom,prenom")->fetchAll();
+$dcMap  = array_column($domainesRows, 'couleur', 'nom');
+?>
+
+<!-- Barre de recherche + filtre domaine -->
+<div class="d-flex gap-3 mb-3 align-items-center flex-wrap">
+  <input id="agentSearch" type="text" class="form-control" placeholder="🔍  Rechercher un agent…" style="max-width:300px"
+    oninput="filterAgents()">
+  <div class="d-flex gap-2 flex-wrap" id="domaineBtns">
+    <button class="btn btn-sm btn-dark active" onclick="filterAgents(this, '')">Tous (<?= count($agents) ?>)</button>
+    <?php foreach ($domainesRows as $d): ?>
+    <button class="btn btn-sm btn-outline-secondary" data-domaine="<?= htmlspecialchars($d['nom']) ?>"
+      onclick="filterAgents(this, '<?= htmlspecialchars($d['nom'], ENT_QUOTES) ?>')"
+      style="--dc:<?= htmlspecialchars($d['couleur']) ?>">
+      <?= htmlspecialchars($d['nom']) ?>
+    </button>
+    <?php endforeach; ?>
+  </div>
+  <span id="agentCount" class="text-muted ms-auto" style="font-size:12px;white-space:nowrap"></span>
+</div>
+
 <div class="card">
   <div class="table-responsive">
-    <table class="table mb-0">
+    <table class="table mb-0" id="agentsTable">
       <thead><tr>
-        <th>Nom / Prénom</th><th>Rôle</th><th>Domaine</th><th>Poste</th><th>DECT</th><th>N° long</th><th>Email</th><th>Actif</th><th></th>
+        <th style="width:220px">Agent</th>
+        <th>Domaine</th>
+        <th>Postes</th>
+        <th>Email</th>
+        <th style="width:50px">Actif</th>
+        <th style="width:220px"></th>
       </tr></thead>
       <tbody>
-      <?php
-      $agents = $db->query("SELECT * FROM agents ORDER BY pole,ordre,id")->fetchAll();
-      $lastPole = null;
-      foreach ($agents as $a):
-        if ($a['pole'] !== $lastPole):
-          $lastPole = $a['pole'];
+      <?php foreach ($agents as $a):
+        $dc = $dcMap[$a['pole']] ?? '#6B7BA8';
       ?>
-        <tr style="background:#F0F4FF"><td colspan="9" class="py-1 px-3 fw-bold" style="font-size:11px;color:#6B7BA8;text-transform:uppercase;letter-spacing:.05em"><?= htmlspecialchars($a['pole']) ?></td></tr>
-      <?php endif; ?>
-      <tr style="<?= !$a['actif'] ? 'opacity:.45' : '' ?>">
+      <tr class="agent-row" data-domaine="<?= htmlspecialchars($a['pole']) ?>"
+          data-search="<?= htmlspecialchars(strtolower($a['nom'].' '.$a['prenom'].' '.($a['role_label']??'').' '.($a['extension']??'').' '.($a['poste2']??'').' '.($a['numero_long']??''))) ?>"
+          style="<?= !$a['actif'] ? 'opacity:.45' : '' ?>">
         <td>
           <div class="d-flex align-items-center gap-2">
-            <div style="width:32px;height:32px;border-radius:50%;background:<?= htmlspecialchars($a['couleur']) ?>;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0"><?= htmlspecialchars($a['initiales']) ?></div>
-            <div><strong><?= htmlspecialchars($a['nom']) ?></strong><br><span style="font-size:12px;color:#6B7BA8"><?= htmlspecialchars($a['prenom'] ?? '') ?></span></div>
+            <div style="width:34px;height:34px;border-radius:50%;background:<?= $dc ?>;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0"><?= htmlspecialchars($a['initiales']) ?></div>
+            <div>
+              <div style="font-weight:700;font-size:13px"><?= htmlspecialchars($a['prenom'] ?? '') ?> <?= htmlspecialchars($a['nom']) ?></div>
+              <?php if ($a['role_label']): ?>
+              <div style="font-size:11px;color:#6B7BA8"><?= htmlspecialchars($a['role_label']) ?></div>
+              <?php endif; ?>
+            </div>
           </div>
         </td>
-        <td><?= htmlspecialchars($a['role_label']) ?></td>
-        <td><span class="badge" style="background:<?= htmlspecialchars($a['couleur']) ?>"><?= htmlspecialchars($a['pole']) ?></span></td>
-        <td style="font-size:12px"><?= htmlspecialchars($a['extension'] ?? '') ?></td>
-        <td style="font-size:12px"><?= htmlspecialchars($a['poste2'] ?? '') ?></td>
-        <td style="font-size:12px"><?= htmlspecialchars($a['numero_long'] ?? '') ?></td>
-        <td><a href="mailto:<?= htmlspecialchars($a['email']) ?>" style="font-size:12px"><?= htmlspecialchars($a['email']) ?></a></td>
-        <td><span class="badge bg-<?= $a['actif'] ? 'success' : 'secondary' ?>"><?= $a['actif'] ? 'Oui' : 'Non' ?></span></td>
-        <td class="text-end">
-          <a href="?action=edit&id=<?= $a['id'] ?>" class="btn btn-sm btn-outline-primary me-1">Modifier</a>
-          <a href="?action=toggle&id=<?= $a['id'] ?>" class="btn btn-sm btn-outline-secondary me-1"><?= $a['actif'] ? 'Désactiver' : 'Activer' ?></a>
-          <a href="?action=delete&id=<?= $a['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Supprimer cet agent ?')">Supprimer</a>
+        <td>
+          <span class="badge" style="background:<?= $dc ?>;font-size:11px"><?= htmlspecialchars($a['pole']) ?></span>
+        </td>
+        <td style="font-size:12px;line-height:1.7">
+          <?php if ($a['extension'])  echo '<span title="Poste fixe">☎ ' . htmlspecialchars($a['extension'])  . '</span><br>'; ?>
+          <?php if ($a['poste2'])     echo '<span title="DECT">📟 '    . htmlspecialchars($a['poste2'])     . '</span><br>'; ?>
+          <?php if ($a['numero_long'])echo '<span title="Mobile">📱 '  . htmlspecialchars($a['numero_long']).'</span>'; ?>
+        </td>
+        <td style="font-size:12px">
+          <a href="mailto:<?= htmlspecialchars($a['email']) ?>"><?= htmlspecialchars($a['email']) ?></a>
+        </td>
+        <td>
+          <span class="badge bg-<?= $a['actif'] ? 'success' : 'secondary' ?>"><?= $a['actif'] ? 'Oui' : 'Non' ?></span>
+        </td>
+        <td class="text-end" style="white-space:nowrap">
+          <a href="?action=edit&id=<?= $a['id'] ?>" class="btn btn-sm btn-outline-primary">✏️ Modifier</a>
+          <a href="?action=toggle&id=<?= $a['id'] ?>" class="btn btn-sm btn-outline-secondary ms-1"><?= $a['actif'] ? 'Désactiver' : 'Activer' ?></a>
+          <a href="?action=delete&id=<?= $a['id'] ?>" class="btn btn-sm btn-outline-danger ms-1"
+             onclick="return confirm('Supprimer <?= htmlspecialchars($a['prenom'].' '.$a['nom'], ENT_QUOTES) ?> ?')">🗑</a>
         </td>
       </tr>
       <?php endforeach; ?>
@@ -188,6 +223,44 @@ if ($id) {
     </table>
   </div>
 </div>
+
+<script>
+var currentDomaine = '';
+function filterAgents(btn, domaine) {
+  currentDomaine = domaine;
+  // Boutons domaine
+  document.querySelectorAll('#domaineBtns .btn').forEach(b => {
+    b.classList.remove('active','btn-dark','text-white');
+    b.classList.add('btn-outline-secondary');
+    b.style.background = '';
+    b.style.color = '';
+    b.style.borderColor = '';
+  });
+  if (btn) {
+    btn.classList.remove('btn-outline-secondary');
+    btn.classList.add('active');
+    var dc = btn.dataset.domaine ? getComputedStyle(btn).getPropertyValue('--dc').trim() : '';
+    if (dc) { btn.style.background = dc; btn.style.color='#fff'; btn.style.borderColor=dc; }
+    else     { btn.classList.add('btn-dark','text-white'); }
+  }
+  applyFilter();
+}
+function applyFilter() {
+  var q = document.getElementById('agentSearch').value.toLowerCase().trim();
+  var rows = document.querySelectorAll('.agent-row');
+  var visible = 0;
+  rows.forEach(function(row) {
+    var matchD = !currentDomaine || row.dataset.domaine === currentDomaine;
+    var matchQ = !q || row.dataset.search.includes(q);
+    var show = matchD && matchQ;
+    row.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  document.getElementById('agentCount').textContent = visible + ' agent' + (visible > 1 ? 's' : '') + ' affiché' + (visible > 1 ? 's' : '');
+}
+document.getElementById('agentSearch').addEventListener('input', applyFilter);
+applyFilter();
+</script>
 <?php endif; ?>
 
 <?php require_once '_footer.php'; ?>
