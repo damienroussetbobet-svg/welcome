@@ -9,26 +9,35 @@ $err = '';
 $action = $_GET['action'] ?? 'list';
 $id     = (int)($_GET['id'] ?? 0);
 
-// ── Delete
+// ── Suppression
 if ($action === 'delete' && $id) {
-    $nb = $db->prepare("SELECT COUNT(*) FROM agents WHERE pole=?");
-    $nb->execute([$db->query("SELECT nom FROM domaines WHERE id=$id")->fetchColumn()]);
-    if ((int)$nb->fetchColumn() > 0) {
-        $err = 'Impossible de supprimer : des agents sont rattachés à ce domaine.';
+    $stmt = $db->prepare("SELECT nom FROM domaines WHERE id=?");
+    $stmt->execute([$id]);
+    $nomDom = $stmt->fetchColumn();
+
+    $stmt2 = $db->prepare("SELECT COUNT(*) FROM agents WHERE pole=?");
+    $stmt2->execute([$nomDom]);
+    $nbAgents = (int)$stmt2->fetchColumn();
+
+    if ($nbAgents > 0) {
+        $err = "Impossible de supprimer : $nbAgents agent(s) sont rattachés à ce domaine.";
     } else {
         $db->prepare("DELETE FROM domaines WHERE id=?")->execute([$id]);
         $msg = 'Domaine supprimé.';
     }
     $action = 'list';
+    $id     = 0;
 }
 
-// ── Save
+// ── Enregistrement (ajout ou modification)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nom     = trim($_POST['nom']     ?? '');
     $couleur = trim($_POST['couleur'] ?? '#1B3A7A');
     $ordre   = (int)($_POST['ordre']  ?? 0);
+
     if ($nom === '') {
-        $err = 'Le nom du domaine est requis.';
+        $err    = 'Le nom du domaine est requis.';
+        $action = $id ? 'edit' : 'add';
     } else {
         if ($id) {
             $db->prepare("UPDATE domaines SET nom=?, couleur=?, ordre=? WHERE id=?")
@@ -40,17 +49,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $msg = 'Domaine créé.';
         }
         $action = 'list';
-        $id = 0;
+        $id     = 0;
     }
 }
 
+// ── Chargement du domaine à modifier
 $domaine = null;
-if ($id && ($action === 'edit' || $action === 'add')) {
+if ($id && $action === 'edit') {
     $stmt = $db->prepare("SELECT * FROM domaines WHERE id=?");
     $stmt->execute([$id]);
     $domaine = $stmt->fetch();
-    if (!$domaine) $id = 0;
+    if (!$domaine) { $id = 0; $action = 'list'; }
 }
+
+// ── Liste toujours chargée
+$liste = $db->query("
+    SELECT d.id, d.nom, d.couleur, d.ordre,
+           COUNT(a.id) AS nb_agents
+    FROM   domaines d
+    LEFT JOIN agents a ON a.pole = d.nom
+    GROUP  BY d.id, d.nom, d.couleur, d.ordre
+    ORDER  BY d.ordre, d.id
+")->fetchAll();
 ?>
 
 <div class="page-header">
@@ -59,96 +79,123 @@ if ($id && ($action === 'edit' || $action === 'add')) {
 </div>
 
 <?php if ($msg): ?><div class="alert alert-success py-2"><?= htmlspecialchars($msg) ?></div><?php endif; ?>
-<?php if ($err): ?><div class="alert alert-danger py-2"><?= htmlspecialchars($err) ?></div><?php endif; ?>
+<?php if ($err): ?><div class="alert alert-danger  py-2"><?= htmlspecialchars($err) ?></div><?php endif; ?>
 
+<!-- ── Formulaire ajout / modification ── -->
 <?php if ($action === 'add' || $action === 'edit'): ?>
-<div class="card p-4 mb-4">
+<div class="card p-4 mb-4" style="border:2px solid #BDD0FF">
   <h5 class="fw-bold mb-3"><?= $id ? 'Modifier le domaine' : 'Nouveau domaine' ?></h5>
   <form method="post" action="?action=<?= $id ? "edit&id=$id" : 'add' ?>">
     <div class="row g-3 align-items-end">
-      <div class="col-md-5">
-        <label class="form-label">Nom du domaine *</label>
-        <input type="text" name="nom" class="form-control" value="<?= htmlspecialchars($domaine['nom'] ?? '') ?>" required placeholder="ex : Infrastructure">
+
+      <div class="col-md-4">
+        <label class="form-label">Nom *</label>
+        <input type="text" name="nom" class="form-control"
+          value="<?= htmlspecialchars($domaine['nom'] ?? '') ?>"
+          required placeholder="ex : Infrastructure">
       </div>
-      <div class="col-md-3">
+
+      <div class="col-md-4">
         <label class="form-label">Couleur</label>
         <div class="d-flex align-items-center gap-2">
-          <input type="color" name="couleur" id="colorPicker" class="form-control form-control-color"
-            value="<?= htmlspecialchars($domaine['couleur'] ?? '#1B3A7A') ?>" style="width:48px;height:38px;padding:2px;cursor:pointer">
-          <input type="text" id="colorHex" class="form-control" style="font-family:monospace;font-size:13px"
-            value="<?= htmlspecialchars($domaine['couleur'] ?? '#1B3A7A') ?>" maxlength="7" placeholder="#1B3A7A">
+          <input type="color" id="cp" class="form-control form-control-color"
+            value="<?= htmlspecialchars($domaine['couleur'] ?? '#1B3A7A') ?>"
+            style="width:46px;height:38px;padding:2px;cursor:pointer"
+            oninput="document.getElementById('ch').value=this.value">
+          <input type="text" id="ch" name="couleur" class="form-control"
+            style="font-family:monospace;font-size:13px" maxlength="7"
+            value="<?= htmlspecialchars($domaine['couleur'] ?? '#1B3A7A') ?>"
+            oninput="if(/^#[0-9a-fA-F]{6}$/.test(this.value))document.getElementById('cp').value=this.value">
+        </div>
+        <div class="d-flex gap-1 mt-2 flex-wrap">
+          <?php foreach (['#1B3A7A','#00A8D6','#8A6FE8','#F5A020','#5CB85C','#D63030','#6B7BA8','#E91E63','#009688','#FF5722','#795548','#607D8B'] as $c): ?>
+          <button type="button"
+            onclick="document.getElementById('cp').value='<?= $c ?>';document.getElementById('ch').value='<?= $c ?>';"
+            style="width:22px;height:22px;border-radius:50%;background:<?= $c ?>;border:2px solid #fff;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.25)"></button>
+          <?php endforeach; ?>
         </div>
       </div>
+
       <div class="col-md-2">
         <label class="form-label">Ordre</label>
-        <input type="number" name="ordre" class="form-control" value="<?= (int)($domaine['ordre'] ?? 0) ?>">
+        <input type="number" name="ordre" class="form-control"
+          value="<?= (int)($domaine['ordre'] ?? count($liste) + 1) ?>">
       </div>
-      <div class="col-md-2 d-flex gap-2">
-        <button class="btn btn-primary w-100">Enregistrer</button>
+
+      <div class="col-md-2 d-flex gap-2 align-items-end">
+        <button class="btn btn-primary flex-grow-1">Enregistrer</button>
+        <a href="domaines.php" class="btn btn-outline-secondary">✕</a>
       </div>
-    </div>
-    <!-- Palette de couleurs rapides -->
-    <div class="mt-3">
-      <div class="form-label mb-2" style="font-size:12px">Palette rapide</div>
-      <div class="d-flex gap-2 flex-wrap">
-        <?php foreach (['#1B3A7A','#00A8D6','#8A6FE8','#F5A020','#5CB85C','#D63030','#6B7BA8','#E91E63','#009688','#FF5722','#795548','#607D8B'] as $c): ?>
-        <button type="button" onclick="document.getElementById('colorPicker').value='<?= $c ?>'; document.getElementById('colorHex').value='<?= $c ?>';"
-          style="width:28px;height:28px;border-radius:50%;background:<?= $c ?>;border:2px solid rgba(255,255,255,0.5);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.2)"></button>
-        <?php endforeach; ?>
-      </div>
+
     </div>
   </form>
 </div>
-<script>
-const picker = document.getElementById('colorPicker');
-const hex    = document.getElementById('colorHex');
-picker.addEventListener('input', () => hex.value  = picker.value);
-hex.addEventListener('input',   () => { if (/^#[0-9a-fA-F]{6}$/.test(hex.value)) picker.value = hex.value; });
-</script>
 <?php endif; ?>
 
-<?php
-$domaines = $db->query("SELECT d.*, (SELECT COUNT(*) FROM agents a WHERE a.pole=d.nom) as nb_agents FROM domaines d ORDER BY d.ordre,d.id")->fetchAll();
-?>
+<!-- ── Tableau des domaines ── -->
 <div class="card">
+  <?php if (empty($liste)): ?>
+  <div class="p-4 text-center text-muted">Aucun domaine. Cliquez sur « + Nouveau domaine » pour commencer.</div>
+  <?php else: ?>
   <div class="table-responsive">
     <table class="table mb-0 align-middle">
-      <thead><tr>
-        <th>Domaine</th><th>Couleur</th><th>Agents rattachés</th><th>Ordre</th><th class="text-end">Actions</th>
-      </tr></thead>
+      <thead>
+        <tr>
+          <th>Domaine</th>
+          <th>Couleur</th>
+          <th>Agents rattachés</th>
+          <th>Ordre</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
       <tbody>
-      <?php foreach ($domaines as $d): ?>
-      <tr style="<?= $id === (int)$d['id'] ? 'background:#F0F4FF' : '' ?>">
-        <td>
-          <div class="d-flex align-items-center gap-2">
-            <div style="width:14px;height:14px;border-radius:50%;background:<?= htmlspecialchars($d['couleur']) ?>;flex-shrink:0"></div>
-            <strong><?= htmlspecialchars($d['nom']) ?></strong>
-          </div>
-        </td>
-        <td><code style="font-size:12px"><?= htmlspecialchars($d['couleur']) ?></code></td>
-        <td>
-          <?php if ($d['nb_agents'] > 0): ?>
-          <span class="badge" style="background:<?= htmlspecialchars($d['couleur']) ?>"><?= (int)$d['nb_agents'] ?> agent<?= $d['nb_agents'] > 1 ? 's' : '' ?></span>
-          <?php else: ?>
-          <span class="text-muted" style="font-size:12px">—</span>
-          <?php endif; ?>
-        </td>
-        <td><?= (int)$d['ordre'] ?></td>
-        <td class="text-end" style="white-space:nowrap">
-          <a href="?action=edit&id=<?= $d['id'] ?>" class="btn btn-sm btn-outline-primary me-1">✏️ Modifier</a>
-          <?php if ((int)$d['nb_agents'] === 0): ?>
-          <a href="?action=delete&id=<?= $d['id'] ?>" class="btn btn-sm btn-outline-danger"
-             onclick="return confirm('Supprimer le domaine « <?= htmlspecialchars($d['nom'], ENT_QUOTES) ?> » ?')">🗑 Supprimer</a>
-          <?php else: ?>
-          <button class="btn btn-sm btn-outline-secondary" disabled title="Des agents sont rattachés à ce domaine">🗑 Supprimer</button>
-          <?php endif; ?>
-        </td>
-      </tr>
+      <?php foreach ($liste as $d):
+        $actif = ($id === (int)$d['id'] && $action === 'edit');
+      ?>
+        <tr style="<?= $actif ? 'background:#EEF3FF' : '' ?>">
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:<?= htmlspecialchars($d['couleur']) ?>;flex-shrink:0"></span>
+              <strong><?= htmlspecialchars($d['nom']) ?></strong>
+            </div>
+          </td>
+          <td><code style="font-size:12px"><?= htmlspecialchars($d['couleur']) ?></code></td>
+          <td>
+            <?php if ($d['nb_agents'] > 0): ?>
+              <span class="badge" style="background:<?= htmlspecialchars($d['couleur']) ?>">
+                <?= (int)$d['nb_agents'] ?> agent<?= $d['nb_agents'] > 1 ? 's' : '' ?>
+              </span>
+            <?php else: ?>
+              <span class="text-muted" style="font-size:12px">—</span>
+            <?php endif; ?>
+          </td>
+          <td style="color:#6B7BA8;font-size:13px"><?= (int)$d['ordre'] ?></td>
+          <td class="text-end" style="white-space:nowrap">
+            <a href="?action=edit&id=<?= $d['id'] ?>" class="btn btn-sm btn-outline-primary me-1">✏️ Modifier</a>
+            <?php if ((int)$d['nb_agents'] === 0): ?>
+              <a href="?action=delete&id=<?= $d['id'] ?>"
+                 class="btn btn-sm btn-outline-danger"
+                 onclick="return confirm('Supprimer le domaine « <?= htmlspecialchars($d['nom'], ENT_QUOTES) ?> » ?')">
+                🗑 Supprimer
+              </a>
+            <?php else: ?>
+              <button class="btn btn-sm btn-outline-secondary" disabled
+                title="<?= (int)$d['nb_agents'] ?> agent(s) rattaché(s) — réassignez-les d'abord">
+                🗑 Supprimer
+              </button>
+            <?php endif; ?>
+          </td>
+        </tr>
       <?php endforeach; ?>
       </tbody>
     </table>
   </div>
+  <?php endif; ?>
 </div>
-<p class="text-muted mt-3" style="font-size:12px">💡 Pour rattacher des agents à un domaine, allez dans <a href="agents.php">Annuaire / Agents</a> et modifiez chaque agent.</p>
+
+<p class="text-muted mt-3" style="font-size:12px">
+  💡 Pour rattacher des agents à un domaine, allez dans
+  <a href="agents.php">Annuaire / Agents</a> et modifiez chaque agent.
+</p>
 
 <?php require_once '_footer.php'; ?>
