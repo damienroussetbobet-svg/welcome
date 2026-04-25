@@ -107,22 +107,21 @@ hex.addEventListener('input',   () => { if (/^#[0-9a-fA-F]{6}$/.test(hex.value))
 </script>
 <?php endif; ?>
 
-<?php if ($action === 'list'): ?>
 <?php
 $domaines = $db->query("SELECT d.*, (SELECT COUNT(*) FROM agents a WHERE a.pole=d.nom) as nb_agents FROM domaines d ORDER BY d.ordre,d.id")->fetchAll();
 ?>
 <div class="card">
   <div class="table-responsive">
-    <table class="table mb-0">
+    <table class="table mb-0 align-middle">
       <thead><tr>
-        <th>Domaine</th><th>Couleur</th><th>Agents</th><th>Ordre</th><th></th>
+        <th>Domaine</th><th>Couleur</th><th>Agents rattachés</th><th>Ordre</th><th class="text-end">Actions</th>
       </tr></thead>
       <tbody>
       <?php foreach ($domaines as $d): ?>
-      <tr>
+      <tr style="<?= $id === (int)$d['id'] ? 'background:#F0F4FF' : '' ?>">
         <td>
           <div class="d-flex align-items-center gap-2">
-            <div style="width:12px;height:12px;border-radius:50%;background:<?= htmlspecialchars($d['couleur']) ?>"></div>
+            <div style="width:14px;height:14px;border-radius:50%;background:<?= htmlspecialchars($d['couleur']) ?>;flex-shrink:0"></div>
             <strong><?= htmlspecialchars($d['nom']) ?></strong>
           </div>
         </td>
@@ -135,13 +134,13 @@ $domaines = $db->query("SELECT d.*, (SELECT COUNT(*) FROM agents a WHERE a.pole=
           <?php endif; ?>
         </td>
         <td><?= (int)$d['ordre'] ?></td>
-        <td class="text-end">
-          <a href="?action=edit&id=<?= $d['id'] ?>" class="btn btn-sm btn-outline-primary me-1">Modifier</a>
+        <td class="text-end" style="white-space:nowrap">
+          <a href="?action=edit&id=<?= $d['id'] ?>" class="btn btn-sm btn-outline-primary me-1">✏️ Modifier</a>
           <?php if ((int)$d['nb_agents'] === 0): ?>
           <a href="?action=delete&id=<?= $d['id'] ?>" class="btn btn-sm btn-outline-danger"
-             onclick="return confirm('Supprimer le domaine « <?= htmlspecialchars($d['nom']) ?> » ?')">Supprimer</a>
+             onclick="return confirm('Supprimer le domaine « <?= htmlspecialchars($d['nom'], ENT_QUOTES) ?> » ?')">🗑 Supprimer</a>
           <?php else: ?>
-          <button class="btn btn-sm btn-outline-secondary" disabled title="Des agents sont rattachés à ce domaine">Supprimer</button>
+          <button class="btn btn-sm btn-outline-secondary" disabled title="Des agents sont rattachés à ce domaine">🗑 Supprimer</button>
           <?php endif; ?>
         </td>
       </tr>
@@ -151,6 +150,5 @@ $domaines = $db->query("SELECT d.*, (SELECT COUNT(*) FROM agents a WHERE a.pole=
   </div>
 </div>
 <p class="text-muted mt-3" style="font-size:12px">💡 Pour rattacher des agents à un domaine, allez dans <a href="agents.php">Annuaire / Agents</a> et modifiez chaque agent.</p>
-<?php endif; ?>
 
 <?php require_once '_footer.php'; ?>
