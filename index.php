@@ -32,6 +32,6 @@ $siteDataJson = json_encode($siteData, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | J
 <body>
 <div id="root"></div>
 <script>window.SITE_DATA = <?= $siteDataJson ?>;</script>
-<script src="assets/js/app.js"></script>
+<script src="assets/js/app.js?v=<?= filemtime(__DIR__.'/assets/js/app.js') ?>"></script>
 </body>
 </html>
