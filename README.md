@@ -365,3 +365,147 @@ cd /var/www/intranet
 git pull
 # Si app-source.jsx a changé, redéployer assets/js/app.js (via git pull)
 ```
+
+---
+
+## Installation POC / Démonstration — Windows + XAMPP
+
+> Cette procédure est destinée à un environnement de démonstration local sur Windows. La base de données est hébergée directement dans XAMPP (pas de serveur séparé).
+
+### Architecture POC
+
+```
+┌──────────────────────────────────────────┐
+│           PC Windows (XAMPP)             │
+│                                          │
+│  Apache 2.4   →   C:\xampp\htdocs\      │
+│  PHP 7.4+                                │
+│  MySQL 5.7+   →   localhost:3306         │
+└──────────────────────────────────────────┘
+```
+
+---
+
+### 1. Installer XAMPP
+
+Télécharger XAMPP **7.4.x** (PHP 7.4) depuis [apachefriends.org](https://www.apachefriends.org).
+
+> Choisir impérativement la version **7.4** pour rester compatible avec l'application.
+
+Installer dans `C:\xampp` (chemin par défaut recommandé).
+
+Lancer le **XAMPP Control Panel** et démarrer **Apache** et **MySQL**.
+
+---
+
+### 2. Déployer les fichiers
+
+Ouvrir un terminal (PowerShell ou Git Bash) :
+
+```powershell
+cd C:\xampp\htdocs
+git clone https://github.com/damienroussetbobet-svg/welcome.git intranet
+```
+
+Ou, sans Git : télécharger le ZIP depuis GitHub → extraire dans `C:\xampp\htdocs\intranet\`.
+
+---
+
+### 3. Créer la base de données
+
+Ouvrir phpMyAdmin : [http://localhost/phpmyadmin](http://localhost/phpmyadmin)
+
+1. Cliquer **Nouvelle base de données**
+2. Nom : `welcome` — Interclassement : `utf8mb4_unicode_ci` → **Créer**
+3. Sélectionner la base `welcome` → onglet **Importer**
+4. Choisir le fichier `C:\xampp\htdocs\intranet\database.sql` → **Exécuter**
+
+---
+
+### 4. Configurer la connexion BDD
+
+Éditer `C:\xampp\htdocs\intranet\api\config.php` avec un éditeur de texte (Notepad++, VS Code…) :
+
+```php
+define('DB_HOST', '127.0.0.1');
+define('DB_PORT', 3306);        // Port XAMPP standard
+define('DB_NAME', 'welcome');
+define('DB_USER', 'root');      // Utilisateur XAMPP par défaut
+define('DB_PASS', '');          // Mot de passe vide par défaut dans XAMPP
+```
+
+---
+
+### 5. Activer les modules Apache
+
+Ouvrir `C:\xampp\apache\conf\httpd.conf` et vérifier que ces lignes sont **décommentées** (sans `#`) :
+
+```apache
+LoadModule deflate_module modules/mod_deflate.so
+LoadModule expires_module  modules/mod_expires.so
+LoadModule headers_module  modules/mod_headers.so
+LoadModule rewrite_module  modules/mod_rewrite.so
+```
+
+Chercher le bloc `<Directory "C:/xampp/htdocs">` et s'assurer que `AllowOverride` est bien à `All` :
+
+```apache
+<Directory "C:/xampp/htdocs">
+    Options Indexes FollowSymLinks Includes ExecCGI
+    AllowOverride All
+    Require all granted
+</Directory>
+```
+
+Redémarrer Apache depuis le XAMPP Control Panel après toute modification.
+
+---
+
+### 6. Configurer PHP pour les uploads vidéo
+
+Ouvrir `C:\xampp\php\php.ini` et modifier :
+
+```ini
+upload_max_filesize = 200M
+post_max_size       = 210M
+max_execution_time  = 300
+max_input_time      = 300
+date.timezone       = Europe/Paris
+```
+
+Redémarrer Apache après modification.
+
+---
+
+### 7. Accéder à l'application
+
+| URL | Description |
+|---|---|
+| `http://localhost/intranet/` | Livret d'accueil |
+| `http://localhost/intranet/admin/` | Back-office |
+
+Identifiants par défaut :
+- Login : `admin`
+- Mot de passe : `Admin@DSN2025`
+
+---
+
+### 8. Supprimer setup.php après la première installation
+
+```powershell
+del C:\xampp\htdocs\intranet\setup.php
+```
+
+---
+
+### Dépannage XAMPP courant
+
+| Symptôme | Cause probable | Solution |
+|---|---|---|
+| Page blanche ou erreur 500 | Module Apache manquant | Vérifier `httpd.conf`, décommenter `mod_rewrite` et `mod_headers` |
+| Erreur connexion BDD | Mauvais port ou mot de passe | Vérifier `DB_PORT = 3306` et `DB_PASS = ''` dans `config.php` |
+| Upload vidéo échoue | Limite PHP trop basse | Vérifier `upload_max_filesize = 200M` dans `php.ini` |
+| `.htaccess` ignoré | `AllowOverride None` | Passer à `AllowOverride All` dans `httpd.conf` |
+| Port 80 déjà utilisé | IIS ou Skype actif | Changer le port Apache dans XAMPP (ex: 8080) ou désactiver IIS |
+
+> **Port 80 occupé sur Windows ?** Dans le XAMPP Control Panel → Config Apache → `httpd.conf`, remplacer `Listen 80` par `Listen 8080`. L'app sera alors accessible sur `http://localhost:8080/intranet/`.
