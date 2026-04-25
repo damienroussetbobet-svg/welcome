@@ -319,6 +319,100 @@ function Sec({
   }, children);
 }
 
+/* ── Texte par défaut du mot d'accueil ── */
+const MOT_ACCUEIL_DEFAULT = `Nous sommes heureux de vous accueillir parmi nous et nous espérons que vous vous plairez dans votre nouvel environnement de travail.
+
+Voici quelques informations importantes pour vous aider à vous orienter et à vous familiariser avec notre service :
+
+Notre service informatique est responsable de la gestion et de l'entretien de tous les systèmes informatiques de l'établissement, y compris les ordinateurs, les serveurs, les réseaux et les logiciels. Nous travaillons en étroite collaboration avec tous les services de l'établissement pour s'assurer que les systèmes informatiques fonctionnent de manière efficace et sécurisée.
+
+Vous serez amené à travailler sur divers projets informatiques, tels que la mise en place de nouveaux systèmes, la maintenance et le dépannage des systèmes existants, ou encore la formation des utilisateurs aux différents outils informatiques.
+
+Vous aurez également la responsabilité de respecter les protocoles de sécurité informatique de l'établissement, en veillant notamment à la confidentialité des données et à la protection contre les virus et les attaques informatiques.
+
+Nous avons établi un certain nombre de règles et de procédures pour assurer le bon fonctionnement de notre service. Nous vous demandons de les respecter afin de contribuer à la qualité de notre travail et à la satisfaction de nos utilisateurs.
+
+En cas de problème ou de question, n'hésitez pas à vous adresser à votre manager ou à un de vos collègues. Nous sommes là pour vous aider et vous soutenir dans votre travail.
+
+En espérant que votre intégration se passera bien et que vous apprécierez votre nouvel environnement de travail, nous vous souhaitons une excellente année professionnelle.`;
+
+/* ── Modale mot d'accueil ── */
+function MotAccueilModal({
+  titre,
+  texte,
+  onClose
+}) {
+  useEffect(() => {
+    const onKey = e => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+  const paragraphs = texte.split(/\n\n+/).filter(p => p.trim());
+  return /*#__PURE__*/React.createElement("div", {
+    onClick: e => e.target === e.currentTarget && onClose(),
+    style: {
+      position: "fixed",
+      inset: 0,
+      background: "rgba(5,10,30,0.72)",
+      zIndex: 2000,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      backdropFilter: "blur(6px)",
+      padding: "20px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative",
+      background: T.white,
+      borderRadius: 20,
+      padding: "32px 36px 28px",
+      maxWidth: 640,
+      width: "100%",
+      maxHeight: "82vh",
+      overflowY: "auto",
+      boxShadow: "0 24px 64px rgba(0,0,0,0.4)"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    style: {
+      position: "absolute",
+      top: 16,
+      right: 16,
+      width: 32,
+      height: 32,
+      borderRadius: "50%",
+      background: T.pill + "88",
+      border: "none",
+      cursor: "pointer",
+      fontSize: 20,
+      fontWeight: 700,
+      color: T.dark,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center"
+    }
+  }, "\xD7"), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontSize: 20,
+      fontWeight: 800,
+      color: T.dark,
+      marginBottom: 20,
+      paddingRight: 40
+    }
+  }, titre), paragraphs.map((p, i) => /*#__PURE__*/React.createElement("p", {
+    key: i,
+    style: {
+      fontSize: 14,
+      color: T.muted,
+      lineHeight: 1.8,
+      marginBottom: i < paragraphs.length - 1 ? 16 : 0
+    }
+  }, p))));
+}
+
 /* ── Modale vidéo ── */
 function VideoModal({
   src,
@@ -385,11 +479,15 @@ function VideoModal({
 /* ── Sections ── */
 function SBienvenue() {
   const [videoOpen, setVideoOpen] = useState(false);
+  const [motOpen, setMotOpen] = useState(false);
   const cfg = D.config || {};
   const subtitle = cfg.bienvenue_subtitle || 'DSN · Direction du Système Numérique';
   const title = cfg.bienvenue_title || "Bienvenue dans\nl'équipe DSN 👋";
   const text = cfg.bienvenue_text || '';
   const cta = cfg.bienvenue_cta || 'Découvrir le service →';
+  const motBtn = cfg.bienvenue_mot_btn || "Mot d'accueil";
+  const motTitre = cfg.bienvenue_mot_titre || "Mot d'accueil";
+  const motTexte = cfg.bienvenue_mot_accueil || MOT_ACCUEIL_DEFAULT;
   const videoFile = cfg.bienvenue_video || '';
   const videoSrc = videoFile ? `uploads/${videoFile}` : null;
   const stats = [[cfg.bienvenue_stat1_value || '~180', cfg.bienvenue_stat1_label || 'agents DSN', T.cyan], [cfg.bienvenue_stat2_value || '24h/24', cfg.bienvenue_stat2_label || 'astreintes', T.orange], [cfg.bienvenue_stat3_value || '3 pôles', cfg.bienvenue_stat3_label || "d'expertise", T.purple]];
@@ -400,6 +498,10 @@ function SBienvenue() {
   }, videoOpen && videoSrc && /*#__PURE__*/React.createElement(VideoModal, {
     src: videoSrc,
     onClose: () => setVideoOpen(false)
+  }), motOpen && /*#__PURE__*/React.createElement(MotAccueilModal, {
+    titre: motTitre,
+    texte: motTexte,
+    onClose: () => setMotOpen(false)
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       background: T.pill,
@@ -458,7 +560,14 @@ function SBienvenue() {
       maxWidth: 440,
       marginBottom: 22
     }
-  }, text), videoSrc ? /*#__PURE__*/React.createElement("button", {
+  }, text), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 12,
+      flexWrap: "wrap",
+      alignItems: "center"
+    }
+  }, videoSrc ? /*#__PURE__*/React.createElement("button", {
     onClick: () => setVideoOpen(true),
     style: {
       display: "inline-flex",
@@ -493,7 +602,23 @@ function SBienvenue() {
     points: "0,0 10,6 0,12"
   }))), cta) : /*#__PURE__*/React.createElement(DarkBtn, {
     href: "#service"
-  }, cta))), /*#__PURE__*/React.createElement("div", {
+  }, cta), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setMotOpen(true),
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 8,
+      background: "transparent",
+      color: T.dark,
+      borderRadius: 24,
+      padding: "9px 20px",
+      fontSize: 13,
+      fontWeight: 700,
+      border: `2px solid ${T.navy}55`,
+      cursor: "pointer",
+      fontFamily: "'Plus Jakarta Sans',sans-serif"
+    }
+  }, "\uD83D\uDCC4 ", motBtn)))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gridTemplateColumns: "repeat(3,1fr)",

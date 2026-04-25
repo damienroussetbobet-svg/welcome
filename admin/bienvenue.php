@@ -14,6 +14,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'bienvenue_title',
         'bienvenue_text',
         'bienvenue_cta',
+        'bienvenue_mot_btn',
+        'bienvenue_mot_titre',
+        'bienvenue_mot_accueil',
         'bienvenue_stat1_value', 'bienvenue_stat1_label',
         'bienvenue_stat2_value', 'bienvenue_stat2_label',
         'bienvenue_stat3_value', 'bienvenue_stat3_label',
@@ -105,6 +108,37 @@ $currentVideo = $cfg['bienvenue_video'] ?? '';
             <input type="text" name="bienvenue_cta" class="form-control"
               value="<?= htmlspecialchars($cfg['bienvenue_cta'] ?? '') ?>">
             <div class="form-text">Si une vidéo est associée, un bouton « Lecture » s'affichera à la place du lien.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mot d'accueil -->
+    <div class="col-12">
+      <div class="card p-4">
+        <h6 class="fw-bold mb-1">📄 Mot d'accueil</h6>
+        <p class="text-muted small mb-3">
+          Un bouton « Mot d'accueil » s'affiche à côté du CTA principal et ouvre une fenêtre modale avec ce texte.
+          Séparez les paragraphes par une ligne vide.
+        </p>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Libellé du bouton</label>
+            <input type="text" name="bienvenue_mot_btn" class="form-control"
+              value="<?= htmlspecialchars($cfg['bienvenue_mot_btn'] ?? '') ?>"
+              placeholder="Mot d'accueil">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Titre de la fenêtre</label>
+            <input type="text" name="bienvenue_mot_titre" class="form-control"
+              value="<?= htmlspecialchars($cfg['bienvenue_mot_titre'] ?? '') ?>"
+              placeholder="Mot d'accueil">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Contenu du mot d'accueil</label>
+            <textarea name="bienvenue_mot_accueil" class="form-control" rows="12"
+              style="font-size:13px;line-height:1.65"><?= htmlspecialchars($cfg['bienvenue_mot_accueil'] ?? '') ?></textarea>
+            <div class="form-text">Laissez une ligne vide entre chaque paragraphe pour qu'ils s'affichent séparément.</div>
           </div>
         </div>
       </div>

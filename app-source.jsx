@@ -108,6 +108,48 @@ function Sec({ id, label, children }) {
   return <section id={id} data-screen-label={label} style={{ marginBottom: 20 }}>{children}</section>;
 }
 
+/* ── Texte par défaut du mot d'accueil ── */
+const MOT_ACCUEIL_DEFAULT = `Nous sommes heureux de vous accueillir parmi nous et nous espérons que vous vous plairez dans votre nouvel environnement de travail.
+
+Voici quelques informations importantes pour vous aider à vous orienter et à vous familiariser avec notre service :
+
+Notre service informatique est responsable de la gestion et de l'entretien de tous les systèmes informatiques de l'établissement, y compris les ordinateurs, les serveurs, les réseaux et les logiciels. Nous travaillons en étroite collaboration avec tous les services de l'établissement pour s'assurer que les systèmes informatiques fonctionnent de manière efficace et sécurisée.
+
+Vous serez amené à travailler sur divers projets informatiques, tels que la mise en place de nouveaux systèmes, la maintenance et le dépannage des systèmes existants, ou encore la formation des utilisateurs aux différents outils informatiques.
+
+Vous aurez également la responsabilité de respecter les protocoles de sécurité informatique de l'établissement, en veillant notamment à la confidentialité des données et à la protection contre les virus et les attaques informatiques.
+
+Nous avons établi un certain nombre de règles et de procédures pour assurer le bon fonctionnement de notre service. Nous vous demandons de les respecter afin de contribuer à la qualité de notre travail et à la satisfaction de nos utilisateurs.
+
+En cas de problème ou de question, n'hésitez pas à vous adresser à votre manager ou à un de vos collègues. Nous sommes là pour vous aider et vous soutenir dans votre travail.
+
+En espérant que votre intégration se passera bien et que vous apprécierez votre nouvel environnement de travail, nous vous souhaitons une excellente année professionnelle.`;
+
+/* ── Modale mot d'accueil ── */
+function MotAccueilModal({ titre, texte, onClose }) {
+  useEffect(() => {
+    const onKey = e => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+  const paragraphs = texte.split(/\n\n+/).filter(p => p.trim());
+  return (
+    <div onClick={e => e.target === e.currentTarget && onClose()}
+      style={{ position:"fixed", inset:0, background:"rgba(5,10,30,0.72)", zIndex:2000, display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(6px)", padding:"20px" }}>
+      <div style={{ position:"relative", background:T.white, borderRadius:20, padding:"32px 36px 28px", maxWidth:640, width:"100%", maxHeight:"82vh", overflowY:"auto", boxShadow:"0 24px 64px rgba(0,0,0,0.4)" }}>
+        <button onClick={onClose}
+          style={{ position:"absolute", top:16, right:16, width:32, height:32, borderRadius:"50%", background:T.pill+"88", border:"none", cursor:"pointer", fontSize:20, fontWeight:700, color:T.dark, display:"flex", alignItems:"center", justifyContent:"center" }}>
+          ×
+        </button>
+        <h2 style={{ fontSize:20, fontWeight:800, color:T.dark, marginBottom:20, paddingRight:40 }}>{titre}</h2>
+        {paragraphs.map((p, i) => (
+          <p key={i} style={{ fontSize:14, color:T.muted, lineHeight:1.8, marginBottom: i < paragraphs.length - 1 ? 16 : 0 }}>{p}</p>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ── Modale vidéo ── */
 function VideoModal({ src, onClose }) {
   useEffect(() => {
@@ -133,12 +175,16 @@ function VideoModal({ src, onClose }) {
 /* ── Sections ── */
 function SBienvenue() {
   const [videoOpen, setVideoOpen] = useState(false);
+  const [motOpen,   setMotOpen]   = useState(false);
   const cfg = D.config || {};
-  const subtitle  = cfg.bienvenue_subtitle || 'DSN · Direction du Système Numérique';
-  const title     = cfg.bienvenue_title    || "Bienvenue dans\nl'équipe DSN 👋";
-  const text      = cfg.bienvenue_text     || '';
-  const cta       = cfg.bienvenue_cta      || 'Découvrir le service →';
-  const videoFile = cfg.bienvenue_video    || '';
+  const subtitle  = cfg.bienvenue_subtitle  || 'DSN · Direction du Système Numérique';
+  const title     = cfg.bienvenue_title     || "Bienvenue dans\nl'équipe DSN 👋";
+  const text      = cfg.bienvenue_text      || '';
+  const cta       = cfg.bienvenue_cta       || 'Découvrir le service →';
+  const motBtn    = cfg.bienvenue_mot_btn   || "Mot d'accueil";
+  const motTitre  = cfg.bienvenue_mot_titre || "Mot d'accueil";
+  const motTexte  = cfg.bienvenue_mot_accueil || MOT_ACCUEIL_DEFAULT;
+  const videoFile = cfg.bienvenue_video     || '';
   const videoSrc  = videoFile ? `uploads/${videoFile}` : null;
   const stats = [
     [cfg.bienvenue_stat1_value || '~180',   cfg.bienvenue_stat1_label || 'agents DSN',    T.cyan],
@@ -149,6 +195,7 @@ function SBienvenue() {
   return (
     <Sec id="bienvenue" label="01 Bienvenue">
       {videoOpen && videoSrc && <VideoModal src={videoSrc} onClose={() => setVideoOpen(false)} />}
+      {motOpen && <MotAccueilModal titre={motTitre} texte={motTexte} onClose={() => setMotOpen(false)} />}
       <div style={{ background: T.pill, borderRadius: 24, padding: "36px 36px 28px", marginBottom: 12, position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", right: 32, top: -40, width: 200, height: 200, borderRadius: "50%", background: "rgba(27,58,122,0.10)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", right: -20, bottom: -30, width: 140, height: 140, borderRadius: "50%", background: "rgba(0,168,214,0.14)", pointerEvents: "none" }} />
@@ -160,21 +207,31 @@ function SBienvenue() {
             ))}
           </h1>
           <p style={{ fontSize: 14, color: T.muted, lineHeight: 1.65, maxWidth: 440, marginBottom: 22 }}>{text}</p>
-          {videoSrc ? (
-            <button onClick={() => setVideoOpen(true)} style={{
-              display:"inline-flex", alignItems:"center", gap:10,
-              background:T.dark, color:T.white, borderRadius:24, padding:"10px 22px",
-              fontSize:13, fontWeight:700, border:"none", cursor:"pointer",
+          <div style={{ display:"flex", gap:12, flexWrap:"wrap", alignItems:"center" }}>
+            {videoSrc ? (
+              <button onClick={() => setVideoOpen(true)} style={{
+                display:"inline-flex", alignItems:"center", gap:10,
+                background:T.dark, color:T.white, borderRadius:24, padding:"10px 22px",
+                fontSize:13, fontWeight:700, border:"none", cursor:"pointer",
+                fontFamily:"'Plus Jakarta Sans',sans-serif",
+              }}>
+                <span style={{ width:28, height:28, borderRadius:"50%", background:"rgba(255,255,255,0.15)", display:"inline-flex", alignItems:"center", justifyContent:"center" }}>
+                  <svg width="10" height="12" viewBox="0 0 10 12" fill="white"><polygon points="0,0 10,6 0,12"/></svg>
+                </span>
+                {cta}
+              </button>
+            ) : (
+              <DarkBtn href="#service">{cta}</DarkBtn>
+            )}
+            <button onClick={() => setMotOpen(true)} style={{
+              display:"inline-flex", alignItems:"center", gap:8,
+              background:"transparent", color:T.dark, borderRadius:24, padding:"9px 20px",
+              fontSize:13, fontWeight:700, border:`2px solid ${T.navy}55`, cursor:"pointer",
               fontFamily:"'Plus Jakarta Sans',sans-serif",
             }}>
-              <span style={{ width:28, height:28, borderRadius:"50%", background:"rgba(255,255,255,0.15)", display:"inline-flex", alignItems:"center", justifyContent:"center" }}>
-                <svg width="10" height="12" viewBox="0 0 10 12" fill="white"><polygon points="0,0 10,6 0,12"/></svg>
-              </span>
-              {cta}
+              📄 {motBtn}
             </button>
-          ) : (
-            <DarkBtn href="#service">{cta}</DarkBtn>
-          )}
+          </div>
         </div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
