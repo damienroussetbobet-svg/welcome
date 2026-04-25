@@ -349,7 +349,8 @@ function MotAccueilModal({
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, []);
-  const paragraphs = texte.split(/\n\n+/).filter(p => p.trim());
+  const isHtml = /<[a-z]/i.test(texte);
+  const paragraphs = isHtml ? [] : texte.split(/\n\n+/).filter(p => p.trim());
   return /*#__PURE__*/React.createElement("div", {
     onClick: e => e.target === e.currentTarget && onClose(),
     style: {
@@ -424,7 +425,12 @@ function MotAccueilModal({
       padding: "36px 40px 40px",
       background: "#F7F9FF"
     }
-  }, paragraphs.map((p, i) => /*#__PURE__*/React.createElement("p", {
+  }, isHtml ? /*#__PURE__*/React.createElement("div", {
+    className: "mot-accueil-body",
+    dangerouslySetInnerHTML: {
+      __html: texte
+    }
+  }) : paragraphs.map((p, i) => /*#__PURE__*/React.createElement("p", {
     key: i,
     style: {
       fontSize: i === 0 ? 15.5 : 14.5,

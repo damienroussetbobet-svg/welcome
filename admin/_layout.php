@@ -26,6 +26,7 @@ $pageTitle ??= 'Administration';
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?= htmlspecialchars($pageTitle) ?> – Admin DSN</title>
 <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
+<?= $extraHead ?? '' ?>
 <style>
   body        { background: #F0F4FF; font-family: 'Segoe UI', system-ui, sans-serif; }
   .sidebar    { width: 220px; min-height: 100vh; background: #0F1E45; position: fixed; top:0; left:0; padding-top:20px; z-index:100; }

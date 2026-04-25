@@ -132,7 +132,8 @@ function MotAccueilModal({ titre, texte, onClose }) {
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, []);
-  const paragraphs = texte.split(/\n\n+/).filter(p => p.trim());
+  const isHtml = /<[a-z]/i.test(texte);
+  const paragraphs = isHtml ? [] : texte.split(/\n\n+/).filter(p => p.trim());
   return (
     <div onClick={e => e.target === e.currentTarget && onClose()}
       style={{ position:"fixed", inset:0, background:"rgba(5,10,30,0.75)", zIndex:2000, display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(8px)", padding:"20px" }}>
@@ -150,15 +151,18 @@ function MotAccueilModal({ titre, texte, onClose }) {
         </div>
         {/* Corps */}
         <div style={{ overflowY:"auto", padding:"36px 40px 40px", background:"#F7F9FF" }}>
-          {paragraphs.map((p, i) => (
-            <p key={i} style={{
-              fontSize: i === 0 ? 15.5 : 14.5,
-              fontWeight: i === 0 ? 600 : 400,
-              color: i === 0 ? T.dark : "#3D4A6A",
-              lineHeight: 1.85,
-              marginBottom: i < paragraphs.length - 1 ? 20 : 0,
-            }}>{p}</p>
-          ))}
+          {isHtml
+            ? <div className="mot-accueil-body" dangerouslySetInnerHTML={{ __html: texte }} />
+            : paragraphs.map((p, i) => (
+                <p key={i} style={{
+                  fontSize: i === 0 ? 15.5 : 14.5,
+                  fontWeight: i === 0 ? 600 : 400,
+                  color: i === 0 ? T.dark : "#3D4A6A",
+                  lineHeight: 1.85,
+                  marginBottom: i < paragraphs.length - 1 ? 20 : 0,
+                }}>{p}</p>
+              ))
+          }
         </div>
       </div>
     </div>

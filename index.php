@@ -27,6 +27,18 @@ $siteDataJson = json_encode($siteData, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | J
   ::-webkit-scrollbar-thumb { background: #C5CFEE; border-radius: 6px; }
   #root { display: flex; width: 100%; }
   a { text-decoration: none; }
+  /* Rendu du mot d'accueil (contenu Quill) */
+  .mot-accueil-body { font-size:14.5px; color:#3D4A6A; line-height:1.85; }
+  .mot-accueil-body p { margin:0 0 18px; }
+  .mot-accueil-body p:last-child { margin-bottom:0; }
+  .mot-accueil-body h2 { font-size:17px; font-weight:800; color:#0F1E45; margin:24px 0 10px; }
+  .mot-accueil-body h3 { font-size:15px; font-weight:700; color:#1B3A7A; margin:20px 0 8px; }
+  .mot-accueil-body strong { font-weight:700; color:#0F1E45; }
+  .mot-accueil-body em { font-style:italic; }
+  .mot-accueil-body u { text-decoration:underline; text-underline-offset:3px; }
+  .mot-accueil-body ul, .mot-accueil-body ol { padding-left:22px; margin:0 0 18px; }
+  .mot-accueil-body li { margin-bottom:6px; }
+  .mot-accueil-body li:last-child { margin-bottom:0; }
 </style>
 </head>
 <body>

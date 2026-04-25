@@ -1,5 +1,12 @@
 <?php
 $pageTitle = 'Section Bienvenue';
+$extraHead = '<link href="../assets/css/quill.snow.css" rel="stylesheet">
+<style>
+  #mot_accueil_editor { height:300px; background:#fff; font-size:14px; font-family:"Segoe UI",system-ui,sans-serif; }
+  .ql-toolbar.ql-snow { border-radius:8px 8px 0 0; border-color:#dee2e6; background:#f8f9fa; }
+  .ql-container.ql-snow { border-radius:0 0 8px 8px; border-color:#dee2e6; }
+  .ql-editor { line-height:1.75; }
+</style>';
 require_once '_layout.php';
 require_once '../api/config.php';
 $db  = getDB();
@@ -136,9 +143,9 @@ $currentVideo = $cfg['bienvenue_video'] ?? '';
           </div>
           <div class="col-12">
             <label class="form-label">Contenu du mot d'accueil</label>
-            <textarea name="bienvenue_mot_accueil" class="form-control" rows="12"
-              style="font-size:13px;line-height:1.65"><?= htmlspecialchars($cfg['bienvenue_mot_accueil'] ?? '') ?></textarea>
-            <div class="form-text">Laissez une ligne vide entre chaque paragraphe pour qu'ils s'affichent séparément.</div>
+            <input type="hidden" name="bienvenue_mot_accueil" id="mot_accueil_input">
+            <div id="mot_accueil_editor"></div>
+            <div class="form-text mt-1">Gras, italique, listes… Utilisez la barre d'outils pour mettre en forme le texte.</div>
           </div>
         </div>
       </div>
@@ -222,5 +229,41 @@ $currentVideo = $cfg['bienvenue_video'] ?? '';
 
   </div>
 </form>
+
+<script src="../assets/js/quill.min.js"></script>
+<script>
+(function () {
+  var quill = new Quill('#mot_accueil_editor', {
+    theme: 'snow',
+    placeholder: "Rédigez le mot d'accueil…",
+    modules: {
+      toolbar: [
+        [{ header: [2, 3, false] }],
+        ['bold', 'italic', 'underline'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['clean']
+      ]
+    }
+  });
+
+  // Charger le contenu existant
+  var existing = <?= json_encode($cfg['bienvenue_mot_accueil'] ?? '') ?>;
+  if (existing) {
+    if (/<[a-z]/i.test(existing)) {
+      quill.root.innerHTML = existing;
+    } else {
+      // Migration : texte brut → paragraphes HTML
+      quill.root.innerHTML = existing.split(/\n\n+/)
+        .map(function(p){ return '<p>' + p.trim().replace(/\n/g, '<br>') + '</p>'; })
+        .join('');
+    }
+  }
+
+  // Synchroniser vers l'input caché avant envoi
+  document.querySelector('form').addEventListener('submit', function () {
+    document.getElementById('mot_accueil_input').value = quill.root.innerHTML;
+  });
+})();
+</script>
 
 <?php require_once '_footer.php'; ?>
