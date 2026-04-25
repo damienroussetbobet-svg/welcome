@@ -14,6 +14,7 @@ $siteDataJson = json_encode($siteData, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | J
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Livret d'accueil – DSN CHU Angers</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link href="assets/css/fonts.css" rel="stylesheet">
 <script src="assets/js/react.production.min.js"></script>
 <script src="assets/js/react-dom.production.min.js"></script>
