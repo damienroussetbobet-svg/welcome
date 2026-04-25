@@ -355,62 +355,85 @@ function MotAccueilModal({
     style: {
       position: "fixed",
       inset: 0,
-      background: "rgba(5,10,30,0.72)",
+      background: "rgba(5,10,30,0.75)",
       zIndex: 2000,
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      backdropFilter: "blur(6px)",
+      backdropFilter: "blur(8px)",
       padding: "20px"
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       position: "relative",
-      background: T.white,
-      borderRadius: 20,
-      padding: "32px 36px 28px",
-      maxWidth: 640,
+      borderRadius: 24,
+      maxWidth: 680,
       width: "100%",
-      maxHeight: "82vh",
-      overflowY: "auto",
-      boxShadow: "0 24px 64px rgba(0,0,0,0.4)"
+      maxHeight: "88vh",
+      display: "flex",
+      flexDirection: "column",
+      boxShadow: "0 32px 80px rgba(0,0,0,0.38)",
+      overflow: "hidden"
     }
-  }, /*#__PURE__*/React.createElement("button", {
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: T.dark,
+      padding: "22px 32px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 18
+    }
+  }, "\uD83D\uDCC4"), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontSize: 17,
+      fontWeight: 800,
+      color: T.white,
+      margin: 0,
+      letterSpacing: "0.01em"
+    }
+  }, titre)), /*#__PURE__*/React.createElement("button", {
     onClick: onClose,
     style: {
-      position: "absolute",
-      top: 16,
-      right: 16,
       width: 32,
       height: 32,
       borderRadius: "50%",
-      background: T.pill + "88",
+      background: "rgba(255,255,255,0.12)",
       border: "none",
       cursor: "pointer",
       fontSize: 20,
-      fontWeight: 700,
-      color: T.dark,
+      lineHeight: 1,
+      color: "rgba(255,255,255,0.85)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center"
     }
-  }, "\xD7"), /*#__PURE__*/React.createElement("h2", {
+  }, "\xD7")), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 20,
-      fontWeight: 800,
-      color: T.dark,
-      marginBottom: 20,
-      paddingRight: 40
+      overflowY: "auto",
+      padding: "36px 40px 40px",
+      background: "#F7F9FF"
     }
-  }, titre), paragraphs.map((p, i) => /*#__PURE__*/React.createElement("p", {
+  }, paragraphs.map((p, i) => /*#__PURE__*/React.createElement("p", {
     key: i,
     style: {
-      fontSize: 14,
-      color: T.muted,
-      lineHeight: 1.8,
-      marginBottom: i < paragraphs.length - 1 ? 16 : 0
+      fontSize: i === 0 ? 15.5 : 14.5,
+      fontWeight: i === 0 ? 600 : 400,
+      color: i === 0 ? T.dark : "#3D4A6A",
+      lineHeight: 1.85,
+      marginBottom: i < paragraphs.length - 1 ? 20 : 0
     }
-  }, p))));
+  }, p)))));
 }
 
 /* ── Modale vidéo ── */

@@ -135,16 +135,31 @@ function MotAccueilModal({ titre, texte, onClose }) {
   const paragraphs = texte.split(/\n\n+/).filter(p => p.trim());
   return (
     <div onClick={e => e.target === e.currentTarget && onClose()}
-      style={{ position:"fixed", inset:0, background:"rgba(5,10,30,0.72)", zIndex:2000, display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(6px)", padding:"20px" }}>
-      <div style={{ position:"relative", background:T.white, borderRadius:20, padding:"32px 36px 28px", maxWidth:640, width:"100%", maxHeight:"82vh", overflowY:"auto", boxShadow:"0 24px 64px rgba(0,0,0,0.4)" }}>
-        <button onClick={onClose}
-          style={{ position:"absolute", top:16, right:16, width:32, height:32, borderRadius:"50%", background:T.pill+"88", border:"none", cursor:"pointer", fontSize:20, fontWeight:700, color:T.dark, display:"flex", alignItems:"center", justifyContent:"center" }}>
-          ×
-        </button>
-        <h2 style={{ fontSize:20, fontWeight:800, color:T.dark, marginBottom:20, paddingRight:40 }}>{titre}</h2>
-        {paragraphs.map((p, i) => (
-          <p key={i} style={{ fontSize:14, color:T.muted, lineHeight:1.8, marginBottom: i < paragraphs.length - 1 ? 16 : 0 }}>{p}</p>
-        ))}
+      style={{ position:"fixed", inset:0, background:"rgba(5,10,30,0.75)", zIndex:2000, display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(8px)", padding:"20px" }}>
+      <div style={{ position:"relative", borderRadius:24, maxWidth:680, width:"100%", maxHeight:"88vh", display:"flex", flexDirection:"column", boxShadow:"0 32px 80px rgba(0,0,0,0.38)", overflow:"hidden" }}>
+        {/* Header */}
+        <div style={{ background:T.dark, padding:"22px 32px", display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <span style={{ fontSize:18 }}>📄</span>
+            <h2 style={{ fontSize:17, fontWeight:800, color:T.white, margin:0, letterSpacing:"0.01em" }}>{titre}</h2>
+          </div>
+          <button onClick={onClose}
+            style={{ width:32, height:32, borderRadius:"50%", background:"rgba(255,255,255,0.12)", border:"none", cursor:"pointer", fontSize:20, lineHeight:1, color:"rgba(255,255,255,0.85)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            ×
+          </button>
+        </div>
+        {/* Corps */}
+        <div style={{ overflowY:"auto", padding:"36px 40px 40px", background:"#F7F9FF" }}>
+          {paragraphs.map((p, i) => (
+            <p key={i} style={{
+              fontSize: i === 0 ? 15.5 : 14.5,
+              fontWeight: i === 0 ? 600 : 400,
+              color: i === 0 ? T.dark : "#3D4A6A",
+              lineHeight: 1.85,
+              marginBottom: i < paragraphs.length - 1 ? 20 : 0,
+            }}>{p}</p>
+          ))}
+        </div>
       </div>
     </div>
   );
