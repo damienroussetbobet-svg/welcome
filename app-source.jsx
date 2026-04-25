@@ -497,7 +497,13 @@ function SAnnuaire() {
   const poleColor = { Direction:T.navy, Infrastructure:T.cyan, Applications:T.purple, Support:T.orange, "Sécurité":"#D63030" };
   const filtered = agents.filter(a => {
     const q = query.toLowerCase();
-    const matchQ = !q || a.nom.toLowerCase().includes(q) || (a.role_label||"").toLowerCase().includes(q) || (a.extension||"").includes(q);
+    const matchQ = !q
+      || (a.nom||"").toLowerCase().includes(q)
+      || (a.prenom||"").toLowerCase().includes(q)
+      || (a.role_label||"").toLowerCase().includes(q)
+      || (a.extension||"").includes(q)
+      || (a.poste2||"").includes(q)
+      || (a.numero_long||"").replace(/\./g,"").includes(q.replace(/\./g,""));
     return matchQ && (filterPole === "Tous" || a.pole === filterPole);
   });
   return (
@@ -516,7 +522,7 @@ function SAnnuaire() {
           <div style={{ display:"flex", gap:10, marginBottom:16, flexWrap:"wrap", alignItems:"center" }}>
             <div style={{ display:"flex", alignItems:"center", gap:8, background:T.bg, borderRadius:10, padding:"8px 14px", flex:"1 1 200px", minWidth:180 }}>
               <Icon name="Search" size={14} color={T.muted} />
-              <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Rechercher un agent, un rôle…"
+              <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Nom, prénom, poste, n° de téléphone…"
                 style={{ border:"none", background:"transparent", outline:"none", fontSize:13, color:T.dark, width:"100%", fontFamily:"'Plus Jakarta Sans',sans-serif" }} />
               {query && <button onClick={() => setQuery("")} style={{ border:"none", background:"none", cursor:"pointer", color:T.muted, fontSize:16, lineHeight:1, padding:0 }}>×</button>}
             </div>
@@ -531,17 +537,18 @@ function SAnnuaire() {
             ? <div style={{ padding:"32px", textAlign:"center", color:T.muted, fontSize:14 }}>Aucun résultat.</div>
             : <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:8 }}>
                 {filtered.map(a => (
-                  <div key={a.email||a.id} style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 14px", background:a.couleur+"0A", borderRadius:12, border:`1.5px solid ${a.couleur}22` }}>
-                    <div style={{ width:40, height:40, borderRadius:"50%", background:a.couleur, color:T.white, fontSize:12, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{a.initiales}</div>
+                  <div key={a.email||a.id} style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"10px 12px", background:a.couleur+"0A", borderRadius:12, border:`1.5px solid ${a.couleur}22` }}>
+                    <div style={{ width:36, height:36, borderRadius:"50%", background:a.couleur, color:T.white, fontSize:11, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2 }}>{a.initiales}</div>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontWeight:700, fontSize:13, color:T.dark }}>{a.nom}</div>
-                      <div style={{ fontSize:11.5, color:T.muted, marginBottom:4 }}>{a.role_label}</div>
-                      <div style={{ display:"flex", gap:12, flexWrap:"wrap" }}>
-                        <span style={{ fontSize:11.5, color:T.dark, fontWeight:600 }}>ext. {a.extension}</span>
-                        <a href={`mailto:${a.email}`} style={{ fontSize:11.5, color:a.couleur }}>{a.email}</a>
+                      <div style={{ fontWeight:800, fontSize:12.5, color:T.dark, lineHeight:1.2 }}>{a.prenom} {a.nom}</div>
+                      {a.role_label && <div style={{ fontSize:11, color:T.muted, marginBottom:4 }}>{a.role_label}</div>}
+                      <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginTop:4 }}>
+                        {a.extension  && <span style={{ fontSize:11, color:T.dark, fontWeight:600 }}>☎ {a.extension}</span>}
+                        {a.poste2     && <span style={{ fontSize:11, color:T.muted }}>📟 {a.poste2}</span>}
+                        {a.numero_long && <span style={{ fontSize:11, color:T.muted }}>📱 {a.numero_long}</span>}
                       </div>
+                      <a href={`mailto:${a.email}`} style={{ fontSize:11, color:a.couleur, display:"block", marginTop:3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{a.email}</a>
                     </div>
-                    <span style={{ fontSize:10, fontWeight:700, color:a.couleur, background:a.couleur+"18", borderRadius:20, padding:"3px 9px", whiteSpace:"nowrap" }}>{a.pole}</span>
                   </div>
                 ))}
               </div>

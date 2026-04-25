@@ -1391,7 +1391,7 @@ function SAnnuaire() {
   };
   const filtered = agents.filter(a => {
     const q = query.toLowerCase();
-    const matchQ = !q || a.nom.toLowerCase().includes(q) || (a.role_label || "").toLowerCase().includes(q) || (a.extension || "").includes(q);
+    const matchQ = !q || (a.nom || "").toLowerCase().includes(q) || (a.prenom || "").toLowerCase().includes(q) || (a.role_label || "").toLowerCase().includes(q) || (a.extension || "").includes(q) || (a.poste2 || "").includes(q) || (a.numero_long || "").replace(/\./g, "").includes(q.replace(/\./g, ""));
     return matchQ && (filterPole === "Tous" || a.pole === filterPole);
   });
   return /*#__PURE__*/React.createElement(Sec, {
@@ -1468,7 +1468,7 @@ function SAnnuaire() {
   }), /*#__PURE__*/React.createElement("input", {
     value: query,
     onChange: e => setQuery(e.target.value),
-    placeholder: "Rechercher un agent, un r\xF4le\u2026",
+    placeholder: "Nom, pr\xE9nom, poste, n\xB0 de t\xE9l\xE9phone\u2026",
     style: {
       border: "none",
       background: "transparent",
@@ -1533,26 +1533,27 @@ function SAnnuaire() {
     key: a.email || a.id,
     style: {
       display: "flex",
-      alignItems: "center",
-      gap: 12,
-      padding: "10px 14px",
+      alignItems: "flex-start",
+      gap: 10,
+      padding: "10px 12px",
       background: a.couleur + "0A",
       borderRadius: 12,
       border: `1.5px solid ${a.couleur}22`
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      width: 40,
-      height: 40,
+      width: 36,
+      height: 36,
       borderRadius: "50%",
       background: a.couleur,
       color: T.white,
-      fontSize: 12,
+      fontSize: 11,
       fontWeight: 800,
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      flexShrink: 0
+      flexShrink: 0,
+      marginTop: 2
     }
   }, a.initiales), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -1561,45 +1562,52 @@ function SAnnuaire() {
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      fontWeight: 700,
-      fontSize: 13,
-      color: T.dark
+      fontWeight: 800,
+      fontSize: 12.5,
+      color: T.dark,
+      lineHeight: 1.2
     }
-  }, a.nom), /*#__PURE__*/React.createElement("div", {
+  }, a.prenom, " ", a.nom), a.role_label && /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 11.5,
+      fontSize: 11,
       color: T.muted,
       marginBottom: 4
     }
   }, a.role_label), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
-      gap: 12,
-      flexWrap: "wrap"
+      gap: 8,
+      flexWrap: "wrap",
+      marginTop: 4
     }
-  }, /*#__PURE__*/React.createElement("span", {
+  }, a.extension && /*#__PURE__*/React.createElement("span", {
     style: {
-      fontSize: 11.5,
+      fontSize: 11,
       color: T.dark,
       fontWeight: 600
     }
-  }, "ext. ", a.extension), /*#__PURE__*/React.createElement("a", {
+  }, "\u260E ", a.extension), a.poste2 && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: T.muted
+    }
+  }, "\uD83D\uDCDF ", a.poste2), a.numero_long && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: T.muted
+    }
+  }, "\uD83D\uDCF1 ", a.numero_long)), /*#__PURE__*/React.createElement("a", {
     href: `mailto:${a.email}`,
     style: {
-      fontSize: 11.5,
-      color: a.couleur
-    }
-  }, a.email))), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 10,
-      fontWeight: 700,
+      fontSize: 11,
       color: a.couleur,
-      background: a.couleur + "18",
-      borderRadius: 20,
-      padding: "3px 9px",
+      display: "block",
+      marginTop: 3,
+      overflow: "hidden",
+      textOverflow: "ellipsis",
       whiteSpace: "nowrap"
     }
-  }, a.pole)))))));
+  }, a.email))))))));
 }
 function SOutils() {
   return /*#__PURE__*/React.createElement(Sec, {

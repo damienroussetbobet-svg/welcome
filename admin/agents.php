@@ -28,13 +28,16 @@ if ($action === 'toggle' && $id) {
 // ── Save (add/edit)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = [
-        $_POST['nom']       ?? '',
-        $_POST['role_label']?? '',
-        $_POST['pole']      ?? 'Autre',
-        $_POST['extension'] ?? '',
-        $_POST['email']     ?? '',
-        $_POST['initiales'] ?? '',
-        $_POST['couleur']   ?? '#1B3A7A',
+        $_POST['nom']        ?? '',
+        $_POST['prenom']     ?? '',
+        $_POST['role_label'] ?? '',
+        $_POST['pole']       ?? 'Autre',
+        $_POST['extension']  ?? '',
+        $_POST['poste2']     ?? '',
+        $_POST['numero_long']?? '',
+        $_POST['email']      ?? '',
+        $_POST['initiales']  ?? '',
+        $_POST['couleur']    ?? '#1B3A7A',
         (int)($_POST['ordre'] ?? 0),
         (int)($_POST['actif'] ?? 1),
     ];
@@ -42,10 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $err = 'Le nom est requis.';
     } else {
         if ($id) {
-            $db->prepare("UPDATE agents SET nom=?,role_label=?,pole=?,extension=?,email=?,initiales=?,couleur=?,ordre=?,actif=? WHERE id=?")->execute([...$data, $id]);
+            $db->prepare("UPDATE agents SET nom=?,prenom=?,role_label=?,pole=?,extension=?,poste2=?,numero_long=?,email=?,initiales=?,couleur=?,ordre=?,actif=? WHERE id=?")->execute([...$data, $id]);
             $msg = 'Agent mis à jour.';
         } else {
-            $db->prepare("INSERT INTO agents (nom,role_label,pole,extension,email,initiales,couleur,ordre,actif) VALUES (?,?,?,?,?,?,?,?,?)")->execute($data);
+            $db->prepare("INSERT INTO agents (nom,prenom,role_label,pole,extension,poste2,numero_long,email,initiales,couleur,ordre,actif) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")->execute($data);
             $msg = 'Agent ajouté.';
         }
         $action = 'list';
@@ -75,15 +78,19 @@ if ($id) {
   <h5 class="fw-bold mb-3"><?= $id ? 'Modifier l\'agent' : 'Nouvel agent' ?></h5>
   <form method="post" action="?action=<?= $id ? "edit&id=$id" : 'add' ?>">
     <div class="row g-3">
-      <div class="col-md-6">
-        <label class="form-label">Nom complet *</label>
-        <input type="text" name="nom" class="form-control" value="<?= htmlspecialchars($agent['nom'] ?? '') ?>" required>
+      <div class="col-md-4">
+        <label class="form-label">NOM *</label>
+        <input type="text" name="nom" class="form-control" value="<?= htmlspecialchars($agent['nom'] ?? '') ?>" required placeholder="ex : DUPONT">
       </div>
-      <div class="col-md-6">
+      <div class="col-md-4">
+        <label class="form-label">Prénom</label>
+        <input type="text" name="prenom" class="form-control" value="<?= htmlspecialchars($agent['prenom'] ?? '') ?>" placeholder="ex : Laurent">
+      </div>
+      <div class="col-md-4">
         <label class="form-label">Rôle / Poste</label>
         <input type="text" name="role_label" class="form-control" value="<?= htmlspecialchars($agent['role_label'] ?? '') ?>">
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label class="form-label">Pôle</label>
         <select name="pole" class="form-select">
           <?php foreach ($poles as $p): ?>
@@ -92,10 +99,18 @@ if ($id) {
         </select>
       </div>
       <div class="col-md-2">
-        <label class="form-label">Extension</label>
-        <input type="text" name="extension" class="form-control" value="<?= htmlspecialchars($agent['extension'] ?? '') ?>">
+        <label class="form-label">Poste (5xxxx)</label>
+        <input type="text" name="extension" class="form-control" value="<?= htmlspecialchars($agent['extension'] ?? '') ?>" placeholder="55894">
       </div>
-      <div class="col-md-6">
+      <div class="col-md-2">
+        <label class="form-label">DECT (4xxxx)</label>
+        <input type="text" name="poste2" class="form-control" value="<?= htmlspecialchars($agent['poste2'] ?? '') ?>" placeholder="45894">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">N° long (06/07)</label>
+        <input type="text" name="numero_long" class="form-control" value="<?= htmlspecialchars($agent['numero_long'] ?? '') ?>" placeholder="06.65.80.xx.xx">
+      </div>
+      <div class="col-md-5">
         <label class="form-label">Email</label>
         <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($agent['email'] ?? '') ?>">
       </div>
@@ -135,7 +150,7 @@ if ($id) {
   <div class="table-responsive">
     <table class="table mb-0">
       <thead><tr>
-        <th>Nom</th><th>Rôle</th><th>Pôle</th><th>Extension</th><th>Email</th><th>Ordre</th><th>Actif</th><th></th>
+        <th>Nom / Prénom</th><th>Rôle</th><th>Pôle</th><th>Poste</th><th>DECT</th><th>N° long</th><th>Email</th><th>Actif</th><th></th>
       </tr></thead>
       <tbody>
       <?php
@@ -145,20 +160,21 @@ if ($id) {
         if ($a['pole'] !== $lastPole):
           $lastPole = $a['pole'];
       ?>
-        <tr style="background:#F0F4FF"><td colspan="8" class="py-1 px-3 fw-bold" style="font-size:11px;color:#6B7BA8;text-transform:uppercase;letter-spacing:.05em"><?= htmlspecialchars($a['pole']) ?></td></tr>
+        <tr style="background:#F0F4FF"><td colspan="9" class="py-1 px-3 fw-bold" style="font-size:11px;color:#6B7BA8;text-transform:uppercase;letter-spacing:.05em"><?= htmlspecialchars($a['pole']) ?></td></tr>
       <?php endif; ?>
       <tr style="<?= !$a['actif'] ? 'opacity:.45' : '' ?>">
         <td>
           <div class="d-flex align-items-center gap-2">
             <div style="width:32px;height:32px;border-radius:50%;background:<?= htmlspecialchars($a['couleur']) ?>;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0"><?= htmlspecialchars($a['initiales']) ?></div>
-            <strong><?= htmlspecialchars($a['nom']) ?></strong>
+            <div><strong><?= htmlspecialchars($a['nom']) ?></strong><br><span style="font-size:12px;color:#6B7BA8"><?= htmlspecialchars($a['prenom'] ?? '') ?></span></div>
           </div>
         </td>
         <td><?= htmlspecialchars($a['role_label']) ?></td>
         <td><span class="badge" style="background:<?= htmlspecialchars($a['couleur']) ?>"><?= htmlspecialchars($a['pole']) ?></span></td>
-        <td><?= htmlspecialchars($a['extension']) ?></td>
+        <td style="font-size:12px"><?= htmlspecialchars($a['extension'] ?? '') ?></td>
+        <td style="font-size:12px"><?= htmlspecialchars($a['poste2'] ?? '') ?></td>
+        <td style="font-size:12px"><?= htmlspecialchars($a['numero_long'] ?? '') ?></td>
         <td><a href="mailto:<?= htmlspecialchars($a['email']) ?>" style="font-size:12px"><?= htmlspecialchars($a['email']) ?></a></td>
-        <td><?= (int)$a['ordre'] ?></td>
         <td><span class="badge bg-<?= $a['actif'] ? 'success' : 'secondary' ?>"><?= $a['actif'] ? 'Oui' : 'Non' ?></span></td>
         <td class="text-end">
           <a href="?action=edit&id=<?= $a['id'] ?>" class="btn btn-sm btn-outline-primary me-1">Modifier</a>
