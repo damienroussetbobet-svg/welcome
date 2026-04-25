@@ -6,8 +6,9 @@ $db  = getDB();
 $msg = '';
 $err = '';
 
-$poles   = ['Direction','Infrastructure','Applications','Support','Sécurité','Autre'];
-$colors  = ['#1B3A7A','#00A8D6','#8A6FE8','#F5A020','#5CB85C','#D63030','#6B7BA8'];
+$domainesRows = $db->query("SELECT * FROM domaines ORDER BY ordre,id")->fetchAll();
+$poles   = array_column($domainesRows, 'nom');
+$colors  = array_column($domainesRows, 'couleur');
 
 $action = $_GET['action'] ?? 'list';
 $id     = (int)($_GET['id'] ?? 0);
@@ -91,7 +92,7 @@ if ($id) {
         <input type="text" name="role_label" class="form-control" value="<?= htmlspecialchars($agent['role_label'] ?? '') ?>">
       </div>
       <div class="col-md-3">
-        <label class="form-label">Pôle</label>
+        <label class="form-label">Domaine</label>
         <select name="pole" class="form-select">
           <?php foreach ($poles as $p): ?>
           <option value="<?= $p ?>" <?= ($agent['pole'] ?? '') === $p ? 'selected' : '' ?>><?= $p ?></option>
@@ -150,7 +151,7 @@ if ($id) {
   <div class="table-responsive">
     <table class="table mb-0">
       <thead><tr>
-        <th>Nom / Prénom</th><th>Rôle</th><th>Pôle</th><th>Poste</th><th>DECT</th><th>N° long</th><th>Email</th><th>Actif</th><th></th>
+        <th>Nom / Prénom</th><th>Rôle</th><th>Domaine</th><th>Poste</th><th>DECT</th><th>N° long</th><th>Email</th><th>Actif</th><th></th>
       </tr></thead>
       <tbody>
       <?php

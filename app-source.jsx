@@ -490,11 +490,12 @@ function SEquipe() {
 
 function SAnnuaire() {
   const [query, setQuery] = useState("");
-  const [filterPole, setFilterPole] = useState("Tous");
+  const [filterDomaine, setFilterDomaine] = useState("Tous");
   const [open, setOpen] = useState(false);
-  const agents = D.agents;
-  const poles = ["Tous", ...Array.from(new Set(agents.map(a => a.pole)))];
-  const poleColor = { Direction:T.navy, Infrastructure:T.cyan, Applications:T.purple, Support:T.orange, "Sécurité":"#D63030" };
+  const agents      = D.agents;
+  const domaines    = D.domaines || [];
+  const domaineColor = Object.fromEntries(domaines.map(d => [d.nom, d.couleur]));
+  const domaineList  = ["Tous", ...domaines.map(d => d.nom)];
   const filtered = agents.filter(a => {
     const q = query.toLowerCase();
     const matchQ = !q
@@ -504,7 +505,7 @@ function SAnnuaire() {
       || (a.extension||"").includes(q)
       || (a.poste2||"").includes(q)
       || (a.numero_long||"").replace(/\./g,"").includes(q.replace(/\./g,""));
-    return matchQ && (filterPole === "Tous" || a.pole === filterPole);
+    return matchQ && (filterDomaine === "Tous" || a.pole === filterDomaine);
   });
   return (
     <Sec id="annuaire" label="04 Annuaire">
@@ -527,8 +528,8 @@ function SAnnuaire() {
               {query && <button onClick={() => setQuery("")} style={{ border:"none", background:"none", cursor:"pointer", color:T.muted, fontSize:16, lineHeight:1, padding:0 }}>×</button>}
             </div>
             <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-              {poles.map(p => (
-                <button key={p} onClick={() => setFilterPole(p)} style={{ padding:"6px 14px", borderRadius:20, border:"none", cursor:"pointer", fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize:12, fontWeight:600, background:filterPole===p?(poleColor[p]||T.dark):T.bg, color:filterPole===p?T.white:T.muted, transition:"all 0.15s" }}>{p}</button>
+              {domaineList.map(p => (
+                <button key={p} onClick={() => setFilterDomaine(p)} style={{ padding:"6px 14px", borderRadius:20, border:"none", cursor:"pointer", fontFamily:"'Plus Jakarta Sans',sans-serif", fontSize:12, fontWeight:600, background:filterDomaine===p?(domaineColor[p]||T.dark):T.bg, color:filterDomaine===p?T.white:T.muted, transition:"all 0.15s" }}>{p}</button>
               ))}
             </div>
           </div>
@@ -536,9 +537,11 @@ function SAnnuaire() {
           {filtered.length === 0
             ? <div style={{ padding:"32px", textAlign:"center", color:T.muted, fontSize:14 }}>Aucun résultat.</div>
             : <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:8 }}>
-                {filtered.map(a => (
-                  <div key={a.email||a.id} style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"10px 12px", background:a.couleur+"0A", borderRadius:12, border:`1.5px solid ${a.couleur}22` }}>
-                    <div style={{ width:36, height:36, borderRadius:"50%", background:a.couleur, color:T.white, fontSize:11, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2 }}>{a.initiales}</div>
+                {filtered.map(a => {
+                  const dc = domaineColor[a.pole] || a.couleur || T.navy;
+                  return (
+                  <div key={a.email||a.id} style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"10px 12px", background:dc+"0A", borderRadius:12, border:`1.5px solid ${dc}22` }}>
+                    <div style={{ width:36, height:36, borderRadius:"50%", background:dc, color:T.white, fontSize:11, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2 }}>{a.initiales}</div>
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{ fontWeight:800, fontSize:12.5, color:T.dark, lineHeight:1.2 }}>{a.prenom} {a.nom}</div>
                       {a.role_label && <div style={{ fontSize:11, color:T.muted, marginBottom:4 }}>{a.role_label}</div>}
@@ -547,10 +550,10 @@ function SAnnuaire() {
                         {a.poste2     && <span style={{ fontSize:11, color:T.muted }}>📟 {a.poste2}</span>}
                         {a.numero_long && <span style={{ fontSize:11, color:T.muted }}>📱 {a.numero_long}</span>}
                       </div>
-                      <a href={`mailto:${a.email}`} style={{ fontSize:11, color:a.couleur, display:"block", marginTop:3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{a.email}</a>
+                      <a href={`mailto:${a.email}`} style={{ fontSize:11, color:dc, display:"block", marginTop:3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{a.email}</a>
                     </div>
-                  </div>
-                ))}
+                  </div>);
+                })}
               </div>
           }
         </>)}

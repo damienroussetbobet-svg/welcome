@@ -1378,21 +1378,16 @@ function SEquipe() {
 }
 function SAnnuaire() {
   const [query, setQuery] = useState("");
-  const [filterPole, setFilterPole] = useState("Tous");
+  const [filterDomaine, setFilterDomaine] = useState("Tous");
   const [open, setOpen] = useState(false);
   const agents = D.agents;
-  const poles = ["Tous", ...Array.from(new Set(agents.map(a => a.pole)))];
-  const poleColor = {
-    Direction: T.navy,
-    Infrastructure: T.cyan,
-    Applications: T.purple,
-    Support: T.orange,
-    "Sécurité": "#D63030"
-  };
+  const domaines = D.domaines || [];
+  const domaineColor = Object.fromEntries(domaines.map(d => [d.nom, d.couleur]));
+  const domaineList = ["Tous", ...domaines.map(d => d.nom)];
   const filtered = agents.filter(a => {
     const q = query.toLowerCase();
     const matchQ = !q || (a.nom || "").toLowerCase().includes(q) || (a.prenom || "").toLowerCase().includes(q) || (a.role_label || "").toLowerCase().includes(q) || (a.extension || "").includes(q) || (a.poste2 || "").includes(q) || (a.numero_long || "").replace(/\./g, "").includes(q.replace(/\./g, ""));
-    return matchQ && (filterPole === "Tous" || a.pole === filterPole);
+    return matchQ && (filterDomaine === "Tous" || a.pole === filterDomaine);
   });
   return /*#__PURE__*/React.createElement(Sec, {
     id: "annuaire",
@@ -1495,9 +1490,9 @@ function SAnnuaire() {
       gap: 6,
       flexWrap: "wrap"
     }
-  }, poles.map(p => /*#__PURE__*/React.createElement("button", {
+  }, domaineList.map(p => /*#__PURE__*/React.createElement("button", {
     key: p,
-    onClick: () => setFilterPole(p),
+    onClick: () => setFilterDomaine(p),
     style: {
       padding: "6px 14px",
       borderRadius: 20,
@@ -1506,8 +1501,8 @@ function SAnnuaire() {
       fontFamily: "'Plus Jakarta Sans',sans-serif",
       fontSize: 12,
       fontWeight: 600,
-      background: filterPole === p ? poleColor[p] || T.dark : T.bg,
-      color: filterPole === p ? T.white : T.muted,
+      background: filterDomaine === p ? domaineColor[p] || T.dark : T.bg,
+      color: filterDomaine === p ? T.white : T.muted,
       transition: "all 0.15s"
     }
   }, p)))), /*#__PURE__*/React.createElement("div", {
@@ -1529,85 +1524,88 @@ function SAnnuaire() {
       gridTemplateColumns: "repeat(2,1fr)",
       gap: 8
     }
-  }, filtered.map(a => /*#__PURE__*/React.createElement("div", {
-    key: a.email || a.id,
-    style: {
-      display: "flex",
-      alignItems: "flex-start",
-      gap: 10,
-      padding: "10px 12px",
-      background: a.couleur + "0A",
-      borderRadius: 12,
-      border: `1.5px solid ${a.couleur}22`
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 36,
-      height: 36,
-      borderRadius: "50%",
-      background: a.couleur,
-      color: T.white,
-      fontSize: 11,
-      fontWeight: 800,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      flexShrink: 0,
-      marginTop: 2
-    }
-  }, a.initiales), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      minWidth: 0
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 800,
-      fontSize: 12.5,
-      color: T.dark,
-      lineHeight: 1.2
-    }
-  }, a.prenom, " ", a.nom), a.role_label && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      color: T.muted,
-      marginBottom: 4
-    }
-  }, a.role_label), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: 8,
-      flexWrap: "wrap",
-      marginTop: 4
-    }
-  }, a.extension && /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 11,
-      color: T.dark,
-      fontWeight: 600
-    }
-  }, "\u260E ", a.extension), a.poste2 && /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 11,
-      color: T.muted
-    }
-  }, "\uD83D\uDCDF ", a.poste2), a.numero_long && /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 11,
-      color: T.muted
-    }
-  }, "\uD83D\uDCF1 ", a.numero_long)), /*#__PURE__*/React.createElement("a", {
-    href: `mailto:${a.email}`,
-    style: {
-      fontSize: 11,
-      color: a.couleur,
-      display: "block",
-      marginTop: 3,
-      overflow: "hidden",
-      textOverflow: "ellipsis",
-      whiteSpace: "nowrap"
-    }
-  }, a.email))))))));
+  }, filtered.map(a => {
+    const dc = domaineColor[a.pole] || a.couleur || T.navy;
+    return /*#__PURE__*/React.createElement("div", {
+      key: a.email || a.id,
+      style: {
+        display: "flex",
+        alignItems: "flex-start",
+        gap: 10,
+        padding: "10px 12px",
+        background: dc + "0A",
+        borderRadius: 12,
+        border: `1.5px solid ${dc}22`
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 36,
+        height: 36,
+        borderRadius: "50%",
+        background: dc,
+        color: T.white,
+        fontSize: 11,
+        fontWeight: 800,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        marginTop: 2
+      }
+    }, a.initiales), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 800,
+        fontSize: 12.5,
+        color: T.dark,
+        lineHeight: 1.2
+      }
+    }, a.prenom, " ", a.nom), a.role_label && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: T.muted,
+        marginBottom: 4
+      }
+    }, a.role_label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 8,
+        flexWrap: "wrap",
+        marginTop: 4
+      }
+    }, a.extension && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11,
+        color: T.dark,
+        fontWeight: 600
+      }
+    }, "\u260E ", a.extension), a.poste2 && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11,
+        color: T.muted
+      }
+    }, "\uD83D\uDCDF ", a.poste2), a.numero_long && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11,
+        color: T.muted
+      }
+    }, "\uD83D\uDCF1 ", a.numero_long)), /*#__PURE__*/React.createElement("a", {
+      href: `mailto:${a.email}`,
+      style: {
+        fontSize: 11,
+        color: dc,
+        display: "block",
+        marginTop: 3,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap"
+      }
+    }, a.email)));
+  })))));
 }
 function SOutils() {
   return /*#__PURE__*/React.createElement(Sec, {

@@ -46,7 +46,8 @@ function buildOrgTree(array $nodes, ?int $parentId = null): array {
 function loadSiteData(): array {
     $db = getDB();
 
-    $agents = $db->query("SELECT * FROM agents WHERE actif=1 ORDER BY ordre,id")->fetchAll();
+    $agents   = $db->query("SELECT * FROM agents WHERE actif=1 ORDER BY ordre,id")->fetchAll();
+    $domaines = $db->query("SELECT * FROM domaines ORDER BY ordre,id")->fetchAll();
 
     $contacts = $db->query("SELECT * FROM contacts WHERE actif=1 ORDER BY ordre,id")->fetchAll();
 
@@ -87,6 +88,7 @@ function loadSiteData(): array {
 
     return [
         'agents'     => $agents,
+        'domaines'   => $domaines,
         'contacts'   => $contacts,
         'faq'        => $faq,
         'procedures' => $procedures,

@@ -59,6 +59,7 @@ $pageTitle ??= 'Administration';
     ['index.php',          '🏠', 'Tableau de bord'],
     ['bienvenue.php',      '👋', 'Bienvenue'],
     ['agents.php',         '👤', 'Annuaire / Agents'],
+    ['domaines.php',       '🏷️', 'Domaines'],
     ['organigramme.php',   '🏗️', 'Organigramme'],
     ['contacts.php',       '📞', 'Contacts'],
     ['faq.php',            '❓', 'FAQ'],
