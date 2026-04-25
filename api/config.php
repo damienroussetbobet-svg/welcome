@@ -5,7 +5,8 @@ define('DB_NAME', 'welcome');
 define('DB_USER', 'root');
 define('DB_PASS', 'root');
 
-define('ADMIN_PASSWORD', 'admin123'); // Change this!
+define('ADMIN_LOGIN',         'admin');
+define('ADMIN_PASSWORD_HASH', '$2y$12$cL7KvvNRzBFSqm4TNVMFle16ma8Z0OIUCas4uGnE8dKgOAPqdAgDe'); // Admin@DSN2025
 
 function loadConfig(): array {
     $rows = getDB()->query("SELECT cle, valeur FROM site_config")->fetchAll();

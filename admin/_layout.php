@@ -2,11 +2,21 @@
 // Shared admin header/footer. Include at top of each admin page.
 // Requires $pageTitle to be defined before inclusion.
 if (!defined('IN_ADMIN')) define('IN_ADMIN', true);
+ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_samesite', 'Strict');
 session_start();
 if (!isset($_SESSION['admin_ok'])) {
     header('Location: login.php');
     exit;
 }
+/* Timeout de session : 8 heures d'inactivité */
+if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > 28800) {
+    session_unset();
+    session_destroy();
+    header('Location: login.php');
+    exit;
+}
+$_SESSION['last_activity'] = time();
 $pageTitle ??= 'Administration';
 ?>
 <!DOCTYPE html>
@@ -66,6 +76,7 @@ $pageTitle ??= 'Administration';
   <?php endforeach; ?>
   <hr style="border-color:rgba(255,255,255,.1); margin:12px 0">
   <a href="../index.php" target="_blank"><span class="ico">🌐</span>Voir le livret</a>
+  <a href="change_password.php" class="<?= basename($_SERVER['PHP_SELF'])==='change_password.php'?'active':'' ?>"><span class="ico">🔐</span>Identifiants</a>
   <a href="logout.php"><span class="ico">🚪</span>Déconnexion</a>
 </div>
 <div class="main">
