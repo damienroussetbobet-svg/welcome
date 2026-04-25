@@ -1,0 +1,9 @@
+# Fichiers uploadés (vidéos, images)
+uploads/*
+!uploads/.gitkeep
+
+# Données Claude Code (sessions locales)
+.claude/
+
+# macOS
+.DS_Store
