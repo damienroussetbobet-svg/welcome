@@ -777,7 +777,9 @@ function OrgTreeNode({
   depth = 0
 }) {
   const [expanded, setExpanded] = useState(depth < 2);
+  const [hovered, setHovered] = useState(false);
   const hasChildren = node.children && node.children.length > 0;
+  const hasContact = node.ext || node.poste2 || node.tel || node.email;
   return /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
@@ -787,7 +789,9 @@ function OrgTreeNode({
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       position: "relative"
-    }
+    },
+    onMouseEnter: () => setHovered(true),
+    onMouseLeave: () => setHovered(false)
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       background: T.white,
@@ -820,7 +824,8 @@ function OrgTreeNode({
     }
   }, node.i), /*#__PURE__*/React.createElement("div", {
     style: {
-      minWidth: 0
+      minWidth: 0,
+      flex: 1
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -836,9 +841,23 @@ function OrgTreeNode({
       lineHeight: 1.3,
       marginTop: 1
     }
-  }, node.r)), hasChildren && /*#__PURE__*/React.createElement("div", {
+  }, node.r)), hasContact && /*#__PURE__*/React.createElement("div", {
     style: {
-      marginLeft: "auto",
+      width: 16,
+      height: 16,
+      borderRadius: "50%",
+      background: node.couleur + "33",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "Phone",
+    size: 8,
+    color: node.couleur
+  })), hasChildren && /*#__PURE__*/React.createElement("div", {
+    style: {
       width: 18,
       height: 18,
       borderRadius: "50%",
@@ -852,7 +871,24 @@ function OrgTreeNode({
     name: expanded ? "ChevronUp" : "ChevronDown",
     size: 10,
     color: node.couleur
-  })))), hasChildren && expanded && /*#__PURE__*/React.createElement("div", {
+  }))), hasContact && hovered && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      top: "calc(100% + 8px)",
+      left: "50%",
+      transform: "translateX(-50%)",
+      background: T.dark,
+      color: T.white,
+      borderRadius: 10,
+      padding: "8px 12px",
+      fontSize: 11,
+      lineHeight: 1.9,
+      whiteSpace: "nowrap",
+      zIndex: 200,
+      boxShadow: "0 4px 20px rgba(0,0,0,0.35)",
+      pointerEvents: "none"
+    }
+  }, node.ext && /*#__PURE__*/React.createElement("div", null, "\u260E ", node.ext), node.poste2 && /*#__PURE__*/React.createElement("div", null, "\uD83D\uDCDF ", node.poste2), node.tel && /*#__PURE__*/React.createElement("div", null, "\uD83D\uDCF1 ", node.tel), node.email && /*#__PURE__*/React.createElement("div", null, "\u2709 ", node.email))), hasChildren && expanded && /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       flexDirection: "column",
@@ -1018,10 +1054,18 @@ function OrgModal({
       gap: 16,
       padding: "10px 24px",
       borderBottom: `1px solid ${T.bg}`,
-      flexWrap: "wrap"
+      flexWrap: "wrap",
+      alignItems: "center"
     }
-  }, [["Direction", T.navy], ["Infrastructure", T.cyan], ["Applications", T.purple], ["Support", T.orange], ["Sécurité", "#D63030"]].map(([l, c]) => /*#__PURE__*/React.createElement("div", {
-    key: l,
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: T.muted,
+      fontWeight: 600,
+      marginRight: 4
+    }
+  }, "Domaines :"), (D.domaines || []).map(d => /*#__PURE__*/React.createElement("div", {
+    key: d.nom,
     style: {
       display: "flex",
       alignItems: "center",
@@ -1032,7 +1076,7 @@ function OrgModal({
       width: 10,
       height: 10,
       borderRadius: "50%",
-      background: c
+      background: d.couleur
     }
   }), /*#__PURE__*/React.createElement("span", {
     style: {
@@ -1040,7 +1084,17 @@ function OrgModal({
       color: T.muted,
       fontWeight: 500
     }
-  }, l)))), /*#__PURE__*/React.createElement("div", {
+  }, d.nom))), /*#__PURE__*/React.createElement("span", {
+    style: {
+      marginLeft: "auto",
+      fontSize: 11,
+      color: T.muted
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "Phone",
+    size: 10,
+    color: T.muted
+  }), " = infos de contact au survol")), /*#__PURE__*/React.createElement("div", {
     style: {
       flex: 1,
       overflow: "auto",

@@ -36,6 +36,10 @@ function buildOrgTree(array $nodes, ?int $parentId = null): array {
             $node['n']        = $node['nom'];
             $node['r']        = $node['role_label'];
             $node['i']        = $node['initiales'];
+            $node['ext']      = $node['a_extension']   ?? null;
+            $node['poste2']   = $node['a_poste2']      ?? null;
+            $node['tel']      = $node['a_numero_long'] ?? null;
+            $node['email']    = $node['a_email']       ?? null;
             $node['children'] = buildOrgTree($nodes, (int)$node['id']);
             $tree[]           = $node;
         }
@@ -83,7 +87,16 @@ function loadSiteData(): array {
     $horaires = $db->query("SELECT * FROM horaires ORDER BY ordre,id")->fetchAll();
     $pratiques = $db->query("SELECT * FROM infos_pratiques ORDER BY ordre,id")->fetchAll();
 
-    $org_nodes = $db->query("SELECT * FROM org_nodes ORDER BY ordre,id")->fetchAll();
+    $org_nodes = $db->query("
+        SELECT n.*,
+               a.extension   AS a_extension,
+               a.poste2      AS a_poste2,
+               a.numero_long AS a_numero_long,
+               a.email       AS a_email
+        FROM   org_nodes n
+        LEFT   JOIN agents a ON a.id = n.agent_id
+        ORDER  BY n.ordre, n.id
+    ")->fetchAll();
     $org_tree  = buildOrgTree($org_nodes, null);
 
     return [

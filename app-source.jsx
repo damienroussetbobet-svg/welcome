@@ -305,26 +305,48 @@ function SService() {
 /* ── Org chart (modal) ── */
 function OrgTreeNode({ node, depth = 0 }) {
   const [expanded, setExpanded] = useState(depth < 2);
+  const [hovered,  setHovered]  = useState(false);
   const hasChildren = node.children && node.children.length > 0;
+  const hasContact  = node.ext || node.poste2 || node.tel || node.email;
   return (
     <div style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
-      <div style={{ position:"relative" }}>
+      <div style={{ position:"relative" }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}>
         <div style={{
           background:T.white, border:`2px solid ${node.couleur}44`, borderRadius:12, padding:"8px 14px",
           display:"flex", alignItems:"center", gap:10, minWidth:160, maxWidth:200,
           boxShadow:`0 2px 8px ${node.couleur}22`, cursor:hasChildren?"pointer":"default", transition:"all 0.15s",
         }} onClick={() => hasChildren && setExpanded(!expanded)}>
           <div style={{ width:32, height:32, borderRadius:"50%", background:node.couleur, color:T.white, fontSize:10, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{node.i}</div>
-          <div style={{ minWidth:0 }}>
+          <div style={{ minWidth:0, flex:1 }}>
             <div style={{ fontSize:11.5, fontWeight:700, color:T.dark, lineHeight:1.2 }}>{node.n}</div>
             <div style={{ fontSize:10, color:T.muted, lineHeight:1.3, marginTop:1 }}>{node.r}</div>
           </div>
+          {hasContact && (
+            <div style={{ width:16, height:16, borderRadius:"50%", background:node.couleur+"33", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+              <Icon name="Phone" size={8} color={node.couleur} />
+            </div>
+          )}
           {hasChildren && (
-            <div style={{ marginLeft:"auto", width:18, height:18, borderRadius:"50%", background:node.couleur+"22", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <div style={{ width:18, height:18, borderRadius:"50%", background:node.couleur+"22", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
               <Icon name={expanded ? "ChevronUp" : "ChevronDown"} size={10} color={node.couleur} />
             </div>
           )}
         </div>
+        {hasContact && hovered && (
+          <div style={{
+            position:"absolute", top:"calc(100% + 8px)", left:"50%", transform:"translateX(-50%)",
+            background:T.dark, color:T.white, borderRadius:10, padding:"8px 12px",
+            fontSize:11, lineHeight:1.9, whiteSpace:"nowrap", zIndex:200,
+            boxShadow:"0 4px 20px rgba(0,0,0,0.35)", pointerEvents:"none",
+          }}>
+            {node.ext    && <div>☎ {node.ext}</div>}
+            {node.poste2 && <div>📟 {node.poste2}</div>}
+            {node.tel    && <div>📱 {node.tel}</div>}
+            {node.email  && <div>✉ {node.email}</div>}
+          </div>
+        )}
       </div>
       {hasChildren && expanded && (
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
@@ -365,13 +387,17 @@ function OrgModal({ onClose, orgTree }) {
           </div>
           <button onClick={onClose} style={{ width:36, height:36, borderRadius:10, border:"none", background:T.bg, cursor:"pointer", fontSize:18, color:T.muted, display:"flex", alignItems:"center", justifyContent:"center" }}>×</button>
         </div>
-        <div style={{ display:"flex", gap:16, padding:"10px 24px", borderBottom:`1px solid ${T.bg}`, flexWrap:"wrap" }}>
-          {[["Direction",T.navy],["Infrastructure",T.cyan],["Applications",T.purple],["Support",T.orange],["Sécurité","#D63030"]].map(([l,c]) => (
-            <div key={l} style={{ display:"flex", alignItems:"center", gap:6 }}>
-              <div style={{ width:10, height:10, borderRadius:"50%", background:c }} />
-              <span style={{ fontSize:11.5, color:T.muted, fontWeight:500 }}>{l}</span>
+        <div style={{ display:"flex", gap:16, padding:"10px 24px", borderBottom:`1px solid ${T.bg}`, flexWrap:"wrap", alignItems:"center" }}>
+          <span style={{ fontSize:11, color:T.muted, fontWeight:600, marginRight:4 }}>Domaines :</span>
+          {(D.domaines || []).map(d => (
+            <div key={d.nom} style={{ display:"flex", alignItems:"center", gap:6 }}>
+              <div style={{ width:10, height:10, borderRadius:"50%", background:d.couleur }} />
+              <span style={{ fontSize:11.5, color:T.muted, fontWeight:500 }}>{d.nom}</span>
             </div>
           ))}
+          <span style={{ marginLeft:"auto", fontSize:11, color:T.muted }}>
+            <Icon name="Phone" size={10} color={T.muted} /> = infos de contact au survol
+          </span>
         </div>
         <div style={{ flex:1, overflow:"auto", padding:"32px 40px", display:"flex", justifyContent:"center" }}>
           <div style={{ transform:`scale(${zoom})`, transformOrigin:"top center", transition:"transform 0.2s" }}>
